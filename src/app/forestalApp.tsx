@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, History, DollarSign, Package, Folder, ChevronRight, Loader, AlertCircle } from 'lucide-react';
 
@@ -17,9 +16,8 @@ const ForestApp = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const NOCODB_URL = process.env.NEXT_PUBLIC_NOCODB_URL!;
-  const API_TOKEN = process.env.NEXT_PUBLIC_NOCODB_TOKEN!;
-
+  const NOCODB_URL = 'http://192.168.0.102:7200';
+  const API_TOKEN = 'WID_c3jzbtRRmmojeJ1kpSKUqXuPQ3zoq8r3B0yr';
   const HEADERS = {
     'xc-token': API_TOKEN,
     'Content-Type': 'application/json'
@@ -81,14 +79,14 @@ const ForestApp = () => {
   };
 
   const getSubcategoriasByCategoria = (catId) => {
-    return subcategorias.filter(sub => sub.nc_1g29__Categorias_id === catId);
+    return subcategorias.filter(sub => sub.fields.nc_1g29__Categorias_id === catId);
   };
 
   const getCostoActual = (productoId) => {
-    const costosProd = costos.filter(c => c.nc_1g29__Productos_id === productoId);
+    const costosProd = costos.filter(c => c.fields.Productos.id === productoId);
     const hoy = new Date().toISOString().split('T')[0];
-    const vigentes = costosProd.filter(c => !c.FechaHasta || c.FechaHasta >= hoy);
-    vigentes.sort((a, b) => (b.FechaDesde || '').localeCompare(a.FechaDesde || ''));
+    const vigentes = costosProd.filter(c => !c.fields.FechaHasta || c.fields.FechaHasta >= hoy);
+    vigentes.sort((a, b) => (b.fields.FechaDesde || '').localeCompare(a.fields.FechaDesde || ''));
     return vigentes[0];
   };
 
@@ -125,14 +123,15 @@ const ForestApp = () => {
 
         <div className="grid gap-4">
           {categorias.map(cat => {
-            const isExpanded = expandedCategories.has(cat.Id);
-            const subcats = getSubcategoriasByCategoria(cat.Id);
+            const isExpanded = expandedCategories.has(cat.id);
+            const subcats = getSubcategoriasByCategoria(cat.id);
+            console.log(cat)
             
             return (
-              <div key={cat.Id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+              <div key={cat.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
                 <div 
                   className="p-6 cursor-pointer hover:bg-gray-50 transition"
-                  onClick={() => toggleCategory(cat.Id)}
+                  onClick={() => toggleCategory(cat.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">
@@ -143,16 +142,13 @@ const ForestApp = () => {
                         <Folder className="text-blue-600" size={24} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{cat.Categoria}</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{cat.fields.Categoria}</h3>
                         <p className="text-sm text-gray-500">
-                          {subcats.length} subcategorías • IVA {cat['IVA%_Default']}%
+                          {subcats.length} subcategorías • Ganancia {cat.fields.Markup}%
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${cat.Activa === 'True' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                        {cat.Activa === 'True' ? 'Activa' : 'Inactiva'}
-                      </span>
                       <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                         <Edit2 size={18} />
                       </button>
@@ -178,16 +174,16 @@ const ForestApp = () => {
                       ) : (
                         <div className="space-y-2">
                           {subcats.map(subcat => (
-                            <div key={subcat.Id} className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition group">
+                            <div key={subcat.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition group">
                               <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    <h5 className="font-medium text-gray-800">{subcat.Subcategoria}</h5>
+                                    <h5 className="font-medium text-gray-800">{subcat.fields.Subcategoria}</h5>
                                     <span className="text-xs text-gray-500">
-                                      {subcat.Productos || 0} productos
+                                      {subcat.fields.Productos || 0} productos
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-500 mt-1">{subcat.Descripcion}</p>
+                                  <p className="text-sm text-gray-500 mt-1">{subcat.fields.Descripcion}</p>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                                   <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
@@ -259,34 +255,34 @@ const ForestApp = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {productos.slice(0, 50).map(prod => {
-                  const costoActual = getCostoActual(prod.Id);
-                  const subcategoria = subcategorias.find(s => s.Id === prod.nc_1g29__Subcategorias_id);
-                  const categoria = subcategoria ? categorias.find(c => c.Id === subcategoria.nc_1g29__Categorias_id) : null;
+                  const costoActual = getCostoActual(prod.id);
+                  const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
+                  const categoria = subcategoria ? categorias.find(c => c.id === subcategoria.fields.nc_1g29__Categorias_id) : null;
                   
                   return (
-                    <tr key={prod.Id} className="hover:bg-gray-50 transition">
+                    <tr key={prod.id} className="hover:bg-gray-50 transition">
                       <td className="py-3 px-4">
-                        <span className="font-mono text-sm font-medium text-gray-700">{prod.SKU}</span>
+                        <span className="font-mono text-sm font-medium text-gray-700">{prod.fields.SKU}</span>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <Package size={16} className="text-gray-400" />
-                          <span className="font-medium text-gray-800">{prod.Nombre}</span>
+                          <span className="font-medium text-gray-800">{prod.fields.Nombre}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-600">
-                        {categoria?.Categoria || '-'}
+                        {categoria?.fields.Categoria || '-'}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-600">
-                        {subcategoria?.Subcategoria || '-'}
+                        {subcategoria?.fields.Subcategoria || '-'}
                       </td>
                       <td className="py-3 px-4 text-right">
                         {costoActual ? (
                           <>
                             <span className="font-semibold text-gray-800">
-                              ${parseFloat(costoActual.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              ${parseFloat(costoActual.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
-                            <span className="text-xs text-gray-500 ml-1">{costoActual.Moneda}</span>
+                            <span className="text-xs text-gray-500 ml-1">{costoActual.fields.Moneda}</span>
                           </>
                         ) : (
                           <span className="text-sm text-gray-400">Sin costo</span>
@@ -355,8 +351,7 @@ const ForestApp = () => {
 
       setSaving(true);
       try {
-        const BASE_ID = 'pkd32qoz1fc1g4k';
-        const response = await fetch(`${NOCODB_URL}/api/v3/data/${BASE_ID}/${TABLES.costos}/records`, {
+        const response = await fetch(`${NOCODB_URL}/api/v2/tables/${TABLES.costos}/records`, {
           method: 'POST',
           headers: HEADERS,
           body: JSON.stringify({
@@ -364,7 +359,7 @@ const ForestApp = () => {
             Moneda: formData.moneda,
             FechaDesde: formData.fechaDesde,
             FechaHasta: formData.fechaHasta || null,
-            nc_1g29__Productos_id: selectedProduct.Id
+            nc_1g29__Productos_id: selectedProduct.id
           })
         });
 
@@ -374,11 +369,10 @@ const ForestApp = () => {
           setFormData({ costo: '', moneda: 'ARS', fechaDesde: new Date().toISOString().split('T')[0], fechaHasta: '' });
           alert('✅ Costo guardado');
         } else {
-          const errorData = await response.json();
-          alert('❌ Error: ' + (errorData.msg || 'Error al guardar'));
+          alert('❌ Error al guardar');
         }
       } catch (err) {
-        alert('❌ Error de conexión: ' + err.message);
+        alert('❌ Error de conexión');
       } finally {
         setSaving(false);
       }
@@ -466,11 +460,11 @@ const ForestApp = () => {
   const HistoryModal = () => {
     if (!showHistoryModal || !selectedProduct) return null;
     
-    const costosProd = costos.filter(c => c.nc_1g29__Productos_id === selectedProduct.Id);
+    const costosProd = costos.filter(c => c.nc_1g29__Productos_id === selectedProduct.id);
     costosProd.sort((a, b) => (b.FechaDesde || '').localeCompare(a.FechaDesde || ''));
     
-    const costoActual = getCostoActual(selectedProduct.Id);
-    const historicos = costosProd.filter(c => c.Id !== costoActual?.Id);
+    const costoActual = getCostoActual(selectedProduct.id);
+    const historicos = costosProd.filter(c => c.id !== costoActual?.id);
     
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -503,7 +497,7 @@ const ForestApp = () => {
               )}
 
               {historicos.map((item) => (
-                <div key={item.Id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-sm font-medium text-gray-600">Anterior</span>
