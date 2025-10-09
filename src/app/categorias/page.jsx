@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Folder, ChevronRight, Loader, AlertCircle } from 'lucide-react';
-import { fetchCategorias, fetchSubcategorias } from '@/lib/api';
+import { fetchCategorias, fetchSubcategorias } from '@/lib/api/index';
 import { NOCODB_URL } from '@/lib/nocodb-config';
 
 export default function CategoriasPage() {
@@ -75,7 +75,6 @@ export default function CategoriasPage() {
   }
 
   return (
-
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="space-y-6">
         <div className="flex justify-between items-center">

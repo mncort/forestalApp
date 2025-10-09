@@ -3,9 +3,7 @@ import { Folder, Package } from 'lucide-react';
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-gray-100">
-
-      <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-800 mb-3">Bienvenido al Sistema de Gestión</h2>
           <p className="text-gray-600">Selecciona una sección para comenzar</p>
@@ -38,7 +36,6 @@ export default function Page() {
             </div>
           </Link>
         </div>
-      </div>
     </div>
   );
 }
