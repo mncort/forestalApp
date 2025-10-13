@@ -1,5 +1,5 @@
 import { fetchRecords } from './base';
-import { TABLES } from '../nocodb-config';
+import { TABLES, NOCODB_URL, BASE_ID, HEADERS } from '../nocodb-config';
 
 /**
  * Obtiene todos los productos
@@ -8,6 +8,31 @@ import { TABLES } from '../nocodb-config';
  */
 export const getProductos = async (options = {}) => {
   return fetchRecords(TABLES.productos, options);
+};
+
+/**
+ * Cuenta el total de productos
+ * @param {Object} options - Opciones de filtrado (where)
+ * @returns {Promise<number>} Total de productos
+ */
+export const countProductos = async (options = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (options.where) params.append('where', options.where);
+
+    const url = `${NOCODB_URL}/api/v3/data/${BASE_ID}/${TABLES.productos}/count?${params}`;
+    const response = await fetch(url, { headers: HEADERS });
+
+    if (!response.ok) {
+      throw new Error(`Error al contar productos: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.count || 0;
+  } catch (error) {
+    console.error('Error contando productos:', error);
+    return 0;
+  }
 };
 
 /**

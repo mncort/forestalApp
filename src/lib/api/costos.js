@@ -31,24 +31,35 @@ export const getCostosByProducto = async (productoId) => {
 export const getCostoActual = (costos, productoId) => {
   if (!costos || !productoId) return null;
 
-  // Filtrar costos del producto
+  // Filtrar costos del producto (excluir costos con valor 0)
   const costosProd = costos.filter(
-    c => c.fields?.Productos?.id === productoId
+    c => c.fields?.Productos?.id === productoId &&
+         parseFloat(c.fields?.Costo || 0) > 0
   );
 
   if (costosProd.length === 0) return null;
 
-  // Obtener fecha actual
-  const hoy = new Date().toISOString().split('T')[0];
+  // Obtener fecha actual en formato YYYY-MM-DD
+  const hoy = new Date();
+  const fechaHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-  // Filtrar costos vigentes (sin fecha hasta o fecha hasta >= hoy)
-  const vigentes = costosProd.filter(
-    c => !c.fields.FechaHasta || c.fields.FechaHasta >= hoy
-  );
+  // Filtrar costos vigentes: fecha_desde <= hoy AND (sin fecha_hasta OR fecha_hasta >= hoy)
+  const vigentes = costosProd.filter(c => {
+    const fechaDesde = c.fields.FechaDesde;
+    const fechaHasta = c.fields.FechaHasta;
+
+    // Debe haber empezado (fechaDesde <= hoy)
+    const haEmpezado = fechaDesde && fechaDesde <= fechaHoy;
+
+    // No debe haber terminado (sin fechaHasta o fechaHasta >= hoy)
+    const noHaTerminado = !fechaHasta || fechaHasta >= fechaHoy;
+
+    return haEmpezado && noHaTerminado;
+  });
 
   if (vigentes.length === 0) return null;
 
-  // Ordenar por fecha desde (más reciente primero)
+  // Si hay múltiples vigentes, tomar el más reciente por fecha desde
   vigentes.sort((a, b) =>
     (b.fields?.FechaDesde || '').localeCompare(a.fields?.FechaDesde || '')
   );

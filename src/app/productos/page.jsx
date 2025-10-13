@@ -1,7 +1,7 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, History, DollarSign, Package } from 'lucide-react';
-import { fetchCategorias, fetchSubcategorias, fetchProductos, fetchCostos, getCostoActual } from '@/lib/api/index';
+import { fetchCategorias, fetchSubcategorias, getProductos, countProductos, fetchCostos, getCostoActual } from '@/lib/api/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
 import CostModal from '@/components/CostModal';
 import HistoryModal from '@/components/HistoryModal';
@@ -12,18 +12,62 @@ export default function ProductosPage() {
   const [showCostModal, setShowCostModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [productosPorPagina, setProductosPorPagina] = useState(10);
+  const [productos, setProductos] = useState([]);
+  const [totalProductos, setTotalProductos] = useState(0);
+  const [loadingProductos, setLoadingProductos] = useState(false);
 
-  const { data, loading, error, reload } = useNocoDBMultiple({
+  // Cargar categorías, subcategorías y costos (sin paginación)
+  const { data, loading, error, reload: reloadOtros } = useNocoDBMultiple({
     categorias: fetchCategorias,
     subcategorias: fetchSubcategorias,
-    productos: fetchProductos,
     costos: fetchCostos
   });
 
   const categorias = data.categorias || [];
   const subcategorias = data.subcategorias || [];
-  const productos = data.productos || [];
   const costos = data.costos || [];
+
+  // Cargar productos paginados desde el servidor
+  useEffect(() => {
+    const cargarProductos = async () => {
+      setLoadingProductos(true);
+      try {
+        const offset = (paginaActual - 1) * productosPorPagina;
+        const [prods, count] = await Promise.all([
+          getProductos({ limit: productosPorPagina, offset }),
+          countProductos()
+        ]);
+        setProductos(prods);
+        setTotalProductos(count);
+      } catch (err) {
+        console.error('Error cargando productos:', err);
+      } finally {
+        setLoadingProductos(false);
+      }
+    };
+
+    cargarProductos();
+  }, [paginaActual, productosPorPagina]);
+
+  // Calcular paginación
+  const totalPaginas = Math.ceil(totalProductos / productosPorPagina);
+  const inicio = (paginaActual - 1) * productosPorPagina;
+  const fin = inicio + productosPorPagina;
+
+  // Resetear a página 1 cuando cambia el número de productos por página
+  const handleCambioProductosPorPagina = (nuevaCantidad) => {
+    setProductosPorPagina(nuevaCantidad);
+    setPaginaActual(1);
+  };
+
+  // Función reload completa
+  const reload = () => {
+    reloadOtros();
+    // Recargar productos forzando el useEffect
+    setPaginaActual(p => p);
+  };
 
   if (loading) {
     return (
@@ -55,7 +99,7 @@ export default function ProductosPage() {
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-3xl font-bold">Productos</h2>
-              <p className="text-base-content/70 text-sm mt-1">{productos.length} productos registrados</p>
+              <p className="text-base-content/70 text-sm mt-1">{totalProductos} productos registrados</p>
             </div>
             <button
               onClick={() => {
@@ -83,7 +127,13 @@ export default function ProductosPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.slice(0, 50).map(prod => {
+                  {loadingProductos ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-8">
+                        <span className="loading loading-spinner loading-md text-primary"></span>
+                      </td>
+                    </tr>
+                  ) : productos.map(prod => {
                     const costoActual = getCostoActual(costos, prod.id);
                     const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
                     const categoria = subcategoria ? categorias.find(c => c.id === subcategoria.fields.nc_1g29__Categorias_id) : null;
@@ -158,11 +208,65 @@ export default function ProductosPage() {
               </table>
             </div>
 
-            {productos.length > 50 && (
-              <div className="p-4 bg-base-200 border-t border-base-300 text-center text-sm text-base-content/70">
-                Mostrando 50 de {productos.length} productos
+            {/* Controles de paginación */}
+            <div className="p-4 bg-base-200 border-t border-base-300">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                {/* Info y selector de cantidad */}
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-base-content/70">
+                    Mostrando {inicio + 1} - {Math.min(fin, totalProductos)} de {totalProductos}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-base-content/70">Por página:</label>
+                    <select
+                      value={productosPorPagina}
+                      onChange={(e) => handleCambioProductosPorPagina(parseInt(e.target.value))}
+                      className="select select-bordered select-sm"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Botones de navegación */}
+                <div className="join">
+                  <button
+                    onClick={() => setPaginaActual(1)}
+                    disabled={paginaActual === 1}
+                    className="join-item btn btn-sm"
+                  >
+                    ««
+                  </button>
+                  <button
+                    onClick={() => setPaginaActual(paginaActual - 1)}
+                    disabled={paginaActual === 1}
+                    className="join-item btn btn-sm"
+                  >
+                    «
+                  </button>
+                  <button className="join-item btn btn-sm no-animation">
+                    Página {paginaActual} de {totalPaginas}
+                  </button>
+                  <button
+                    onClick={() => setPaginaActual(paginaActual + 1)}
+                    disabled={paginaActual === totalPaginas}
+                    className="join-item btn btn-sm"
+                  >
+                    »
+                  </button>
+                  <button
+                    onClick={() => setPaginaActual(totalPaginas)}
+                    disabled={paginaActual === totalPaginas}
+                    className="join-item btn btn-sm"
+                  >
+                    »»
+                  </button>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 

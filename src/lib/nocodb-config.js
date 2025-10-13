@@ -1,6 +1,17 @@
-export const NOCODB_URL = process.env.NEXT_PUBLIC_NOCODB_URL || 'http://localhost:7200';
-export const API_TOKEN = process.env.NEXT_PUBLIC_NOCODB_TOKEN || '';
-export const BASE_ID = process.env.NEXT_PUBLIC_NOCODB_BASE_ID || 'pkd32qoz1fc1g4k';
+// Validar que las variables de entorno existan
+if (!process.env.NEXT_PUBLIC_NOCODB_URL) {
+  throw new Error('NEXT_PUBLIC_NOCODB_URL no está definida en .env.local');
+}
+if (!process.env.NEXT_PUBLIC_NOCODB_TOKEN) {
+  throw new Error('NEXT_PUBLIC_NOCODB_TOKEN no está definida en .env.local');
+}
+if (!process.env.NEXT_PUBLIC_NOCODB_BASE_ID) {
+  throw new Error('NEXT_PUBLIC_NOCODB_BASE_ID no está definida en .env.local');
+}
+
+export const NOCODB_URL = process.env.NEXT_PUBLIC_NOCODB_URL;
+export const API_TOKEN = process.env.NEXT_PUBLIC_NOCODB_TOKEN;
+export const BASE_ID = process.env.NEXT_PUBLIC_NOCODB_BASE_ID;
 
 export const HEADERS = {
   'xc-token': API_TOKEN,
@@ -9,8 +20,9 @@ export const HEADERS = {
 };
 
 export const TABLES = {
-  categorias: process.env.NEXT_PUBLIC_TABLE_CATEGORIAS || 'mki28en6bedf5cu',
-  subcategorias: process.env.NEXT_PUBLIC_TABLE_SUBCATEGORIAS || 'mmlg9mykn3x2wba',
-  productos: process.env.NEXT_PUBLIC_TABLE_PRODUCTOS || 'mqs4c3qv5r4qkeu',
-  costos: process.env.NEXT_PUBLIC_TABLE_COSTOS || 'mx17jsmdlsczskq'
+  categorias: process.env.NEXT_PUBLIC_TABLE_CATEGORIAS,
+  subcategorias: process.env.NEXT_PUBLIC_TABLE_SUBCATEGORIAS,
+  productos: process.env.NEXT_PUBLIC_TABLE_PRODUCTOS,
+  costos: process.env.NEXT_PUBLIC_TABLE_COSTOS,
+  costosHist: process.env.NEXT_PUBLIC_TABLE_COSTOS_HIST
 };

@@ -14,6 +14,7 @@ export {
 // Productos
 export {
   getProductos,
+  countProductos,
   getProductoById,
   getProductosBySubcategoria,
   getProductosByCategoria,
