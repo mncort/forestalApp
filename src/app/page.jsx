@@ -3,36 +3,36 @@ import { Folder, Package } from 'lucide-react';
 
 export default function Page() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
+    <div className="container mx-auto px-6 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-3">Bienvenido al Sistema de Gestión</h2>
-          <p className="text-gray-600">Selecciona una sección para comenzar</p>
+          <h2 className="text-4xl font-bold mb-3">Bienvenido al Sistema de Gestión</h2>
+          <p className="text-base-content/70">Selecciona una sección para comenzar</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <Link
             href="/categorias"
-            className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl hover:border-blue-300 transition-all group"
+            className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all group border border-base-300 hover:border-primary"
           >
-            <div className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-6 rounded-full mb-4 group-hover:bg-blue-200 transition">
-                <Folder className="text-blue-600" size={48} />
+            <div className="card-body items-center text-center">
+              <div className="bg-primary/10 p-6 rounded-full mb-4 group-hover:bg-primary/20 transition">
+                <Folder className="text-primary" size={48} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Categorías & Subcategorías</h3>
-              <p className="text-gray-600">Gestiona las categorías y subcategorías de productos</p>
+              <h3 className="card-title">Categorías & Subcategorías</h3>
+              <p className="text-base-content/70">Gestiona las categorías y subcategorías de productos</p>
             </div>
           </Link>
 
           <Link
             href="/productos"
-            className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl hover:border-green-300 transition-all group"
+            className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all group border border-base-300 hover:border-secondary"
           >
-            <div className="flex flex-col items-center text-center">
-              <div className="bg-green-100 p-6 rounded-full mb-4 group-hover:bg-green-200 transition">
-                <Package className="text-green-600" size={48} />
+            <div className="card-body items-center text-center">
+              <div className="bg-secondary/10 p-6 rounded-full mb-4 group-hover:bg-secondary/20 transition">
+                <Package className="text-secondary" size={48} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Productos</h3>
-              <p className="text-gray-600">Administra productos y sus costos históricos</p>
+              <h3 className="card-title">Productos</h3>
+              <p className="text-base-content/70">Administra productos y sus costos históricos</p>
             </div>
           </Link>
         </div>

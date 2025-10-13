@@ -1,38 +1,38 @@
 'use client'
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, Folder, Package, Settings, BarChart3 } from 'lucide-react';
 
-export default function Navigation() {
+export default function Sidebar() {
   const pathname = usePathname();
 
   const isActive = (path) => pathname === path;
 
+  const menuItems = [
+    { href: '/', icon: Home, label: 'Inicio' },
+    { href: '/categorias', icon: Folder, label: 'Categorías' },
+    { href: '/productos', icon: Package, label: 'Productos' },
+    { href: '/reportes', icon: BarChart3, label: 'Reportes' },
+  ];
+
   return (
-    <div className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex gap-8">
-          <Link
-            href="/categorias"
-            className={`py-4 px-2 border-b-2 font-medium text-sm transition ${
-              isActive('/categorias')
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Categorías & Subcategorías
-          </Link>
-          <Link
-            href="/productos"
-            className={`py-4 px-2 border-b-2 font-medium text-sm transition ${
-              isActive('/productos')
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Productos
-          </Link>
-        </div>
-      </div>
-    </div>
+    <aside className="w-64 bg-base-100 border-r border-base-300 min-h-screen sticky top-16">
+      <ul className="menu p-4 w-full">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={isActive(item.href) ? 'active' : ''}
+              >
+                <Icon size={20} />
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </aside>
   );
 }

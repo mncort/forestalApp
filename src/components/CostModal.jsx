@@ -1,8 +1,8 @@
 'use client'
 import React, { useState } from 'react';
-import { Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { NOCODB_URL, HEADERS, TABLES } from '@/lib/nocodb-config';
+import { getCostosByProducto, updateRecord } from '@/lib/api/index';
 
 export default function CostModal({ show, product, onClose, onSaved }) {
   const [formData, setFormData] = useState({
@@ -16,7 +16,6 @@ export default function CostModal({ show, product, onClose, onSaved }) {
   if (!show || !product) return null;
 
   const handleSave = async () => {
-    // Validación
     if (!formData.costo) {
       toast.error('Por favor ingresá un costo');
       return;
@@ -34,6 +33,41 @@ export default function CostModal({ show, product, onClose, onSaved }) {
 
     setSaving(true);
     try {
+      // 1. Buscar si existe un costo previo sin fecha hasta
+      const costosProducto = await getCostosByProducto(product.id);
+      console.log('Costos encontrados:', costosProducto);
+
+      const costoPrevioSinCierre = costosProducto.find(
+        c => !c.fields.FechaHasta || c.fields.FechaHasta === ''
+      );
+
+      console.log('Costo previo sin cierre:', costoPrevioSinCierre);
+
+      // 2. Si existe un costo previo sin cerrar, actualizarlo con el día anterior al nuevo costo
+      if (costoPrevioSinCierre) {
+        // Calcular el día anterior a la fecha desde del nuevo costo
+        // Usar formato YYYY-MM-DD directamente para evitar problemas de zona horaria
+        const [year, month, day] = formData.fechaDesde.split('-').map(Number);
+        const fechaHastaPrevio = new Date(year, month - 1, day - 1);
+
+        const fechaHastaStr = fechaHastaPrevio.toISOString().split('T')[0];
+        console.log('Fecha hasta para costo previo:', fechaHastaStr);
+
+        // Actualizar el costo previo usando la función updateRecord
+        try {
+          await updateRecord(TABLES.costos, costoPrevioSinCierre.id, {
+            FechaHasta: fechaHastaStr
+          });
+          console.log('Costo previo actualizado exitosamente');
+        } catch (updateError) {
+          console.error('Error al actualizar costo previo:', updateError);
+          toast.error('Error al cerrar el costo previo');
+          setSaving(false);
+          return;
+        }
+      }
+
+      // 3. Crear el nuevo costo
       const response = await fetch(`${NOCODB_URL}/api/v2/tables/${TABLES.costos}/records`, {
         method: 'POST',
         headers: HEADERS,
@@ -50,9 +84,13 @@ export default function CostModal({ show, product, onClose, onSaved }) {
         await onSaved();
         onClose();
         setFormData({ costo: '', moneda: 'ARS', fechaDesde: new Date().toISOString().split('T')[0], fechaHasta: '' });
-        toast.success('Costo guardado exitosamente');
+        toast.success(costoPrevioSinCierre
+          ? 'Costo guardado y costo anterior cerrado exitosamente'
+          : 'Costo guardado exitosamente'
+        );
       } else {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Error al crear costo:', errorData);
         toast.error(errorData.message || 'Error al guardar el costo');
       }
     } catch (err) {
@@ -64,76 +102,82 @@ export default function CostModal({ show, product, onClose, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-xl font-bold text-gray-800">Asignar Costo</h3>
-          <p className="text-sm text-gray-600 mt-1">{product.fields.Nombre}</p>
-        </div>
+    <div className="modal modal-open">
+      <div className="modal-box">
+        <h3 className="font-bold text-lg">Asignar Costo</h3>
+        <p className="py-2 text-sm text-base-content/70">{product.fields.Nombre}</p>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Costo *</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+        <div className="py-4 space-y-4">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Costo *</span>
+            </label>
+            <label className="input-group">
+              <span>$</span>
               <input
                 type="number"
                 step="0.01"
                 value={formData.costo}
                 onChange={(e) => setFormData({ ...formData, costo: e.target.value })}
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                className="input input-bordered w-full"
                 placeholder="0.00"
               />
-            </div>
+            </label>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Moneda</label>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Moneda</span>
+            </label>
             <select
               value={formData.moneda}
               onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="select select-bordered w-full"
             >
               <option value="ARS">ARS - Peso Argentino</option>
               <option value="USD">USD - Dólar</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Desde *</label>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Desde *</span>
+            </label>
             <input
               type="date"
               value={formData.fechaDesde}
               onChange={(e) => setFormData({ ...formData, fechaDesde: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="input input-bordered w-full"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Hasta (opcional)</label>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Hasta (opcional)</span>
+            </label>
             <input
               type="date"
               value={formData.fechaHasta}
               onChange={(e) => setFormData({ ...formData, fechaHasta: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="input input-bordered w-full"
             />
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
+        <div className="modal-action">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-800 bg-gray-200 rounded-lg hover:bg-gray-300 transition font-medium"
+            className="btn btn-ghost"
             disabled={saving}
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-medium"
+            className="btn btn-primary"
             disabled={saving}
           >
-            {saving && <Loader size={16} className="animate-spin" />}
+            {saving && <span className="loading loading-spinner loading-sm"></span>}
             {saving ? 'Guardando...' : 'Guardar'}
           </button>
         </div>

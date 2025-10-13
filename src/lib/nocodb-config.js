@@ -4,7 +4,8 @@ export const BASE_ID = process.env.NEXT_PUBLIC_NOCODB_BASE_ID || 'pkd32qoz1fc1g4
 
 export const HEADERS = {
   'xc-token': API_TOKEN,
-  'Content-Type': 'application/json'
+  'Content-Type': 'application/json',
+  'xc-timezone': 'America/Argentina/Buenos_Aires'
 };
 
 export const TABLES = {

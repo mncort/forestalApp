@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
-import Navigation from "@/components/Navigation";
+import Sidebar from "@/components/Navigation";
 import ToastProvider from "@/components/ToastProvider";
 
 const geistSans = Geist({
@@ -21,13 +21,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light">
       <body
-        className={`min-h-screen bg-gray-100 ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Header />
-        <Navigation />
-        {children}
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 bg-base-200 min-h-[calc(100vh-4rem)]">
+            {children}
+          </main>
+        </div>
         <ToastProvider />
       </body>
     </html>
