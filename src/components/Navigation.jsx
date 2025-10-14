@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Folder, Package, Settings, BarChart3 } from 'lucide-react';
+import { Home, Folder, Package, FileText, BarChart3 } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -12,7 +12,7 @@ export default function Sidebar() {
     { href: '/', icon: Home, label: 'Inicio' },
     { href: '/categorias', icon: Folder, label: 'Categorías' },
     { href: '/productos', icon: Package, label: 'Productos' },
-    { href: '/reportes', icon: BarChart3, label: 'Reportes' },
+    { href: '/presupuestos', icon: FileText, label: 'Presupuestos' },
   ];
 
   return (

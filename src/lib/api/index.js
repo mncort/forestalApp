@@ -33,6 +33,23 @@ export {
   calcularPrecioVenta
 } from './costos';
 
+// Presupuestos
+export {
+  getPresupuestos,
+  getPresupuestoById,
+  crearPresupuesto,
+  actualizarPresupuesto,
+  eliminarPresupuesto,
+  getPresupuestoItems,
+  getItemsByPresupuesto,
+  crearPresupuestoItem,
+  actualizarPresupuestoItem,
+  eliminarPresupuestoItem,
+  obtenerMarkupAplicable,
+  calcularPrecioProducto,
+  calcularTotalPresupuesto
+} from './presupuestos';
+
 // Mantener compatibilidad con nombres antiguos (DEPRECADOS)
 // TODO: Remover cuando se actualicen todos los componentes
 export { getCategorias as fetchCategorias } from './categorias';

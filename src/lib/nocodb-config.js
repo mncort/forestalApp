@@ -24,5 +24,7 @@ export const TABLES = {
   subcategorias: process.env.NEXT_PUBLIC_TABLE_SUBCATEGORIAS,
   productos: process.env.NEXT_PUBLIC_TABLE_PRODUCTOS,
   costos: process.env.NEXT_PUBLIC_TABLE_COSTOS,
-  costosHist: process.env.NEXT_PUBLIC_TABLE_COSTOS_HIST
+  costosHist: process.env.NEXT_PUBLIC_TABLE_COSTOS_HIST,
+  presupuestos: process.env.NEXT_PUBLIC_TABLE_PRESUPUESTOS,
+  presupuestoItems: process.env.NEXT_PUBLIC_TABLE_PRESUPUESTO_ITEMS
 };
