@@ -35,13 +35,10 @@ export default function CostModal({ show, product, onClose, onSaved }) {
     try {
       // 1. Buscar si existe un costo previo sin fecha hasta
       const costosProducto = await getCostosByProducto(product.id);
-      console.log('Costos encontrados:', costosProducto);
 
       const costoPrevioSinCierre = costosProducto.find(
         c => !c.fields.FechaHasta || c.fields.FechaHasta === ''
       );
-
-      console.log('Costo previo sin cierre:', costoPrevioSinCierre);
 
       // 2. Si existe un costo previo sin cerrar, actualizarlo con el día anterior al nuevo costo
       if (costoPrevioSinCierre) {
@@ -51,14 +48,12 @@ export default function CostModal({ show, product, onClose, onSaved }) {
         const fechaHastaPrevio = new Date(year, month - 1, day - 1);
 
         const fechaHastaStr = fechaHastaPrevio.toISOString().split('T')[0];
-        console.log('Fecha hasta para costo previo:', fechaHastaStr);
 
         // Actualizar el costo previo usando la función updateRecord
         try {
           await updateRecord(TABLES.costos, costoPrevioSinCierre.id, {
             FechaHasta: fechaHastaStr
           });
-          console.log('Costo previo actualizado exitosamente');
         } catch (updateError) {
           console.error('Error al actualizar costo previo:', updateError);
           toast.error('Error al cerrar el costo previo');

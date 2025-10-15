@@ -1,26 +1,18 @@
-import { getPresupuestoTemplate } from './presupuestoTemplate';
+import { getPresupuestoHTML } from './presupuestoTemplate';
 
 /**
- * Genera y abre un PDF del presupuesto
+ * Genera el HTML del presupuesto y retorna una URL para visualizarlo en un modal
+ * Esta función prepara los datos y retorna un objeto URL que puede usarse en un iframe
+ *
  * @param {Object} presupuesto - Objeto del presupuesto
  * @param {Array} itemsConPrecios - Items del presupuesto con precios calculados
  * @param {string} tipoFactura - Tipo de factura (con_factura o sin_factura)
+ * @returns {Object} { url, cleanup } - URL del blob y función para limpiar
  */
 export function generarPresupuestoPDF(presupuesto, itemsConPrecios, tipoFactura) {
-  console.log("Generando PDF para presupuesto:", presupuesto);
-  console.log("Items con precios:", itemsConPrecios);
-  console.log("Tipo de factura:", tipoFactura);
   // Validar que hay items
   if (!itemsConPrecios || itemsConPrecios.length === 0) {
-    alert('No hay items en el presupuesto para generar el PDF');
-    return;
-  }
-
-  // Crear ventana para imprimir
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('Por favor, permite las ventanas emergentes para generar el PDF');
-    return;
+    throw new Error('No hay items en el presupuesto');
   }
 
   // Preparar datos
@@ -40,8 +32,8 @@ export function generarPresupuestoPDF(presupuesto, itemsConPrecios, tipoFactura)
 
   // Formatear items para el template
   const itemsFormateados = itemsConPrecios.map(item => ({
-    nombre: item.fields?.Productos?.fields?.Nombre || 'N/A',
-    sku: item.producto?.fields?.SKU || item.fields?.Productos?.fields?.SKU || 'N/A',
+    nombre: item.productoNested?.Nombre || 'N/A',
+    sku: item.productoNested?.SKU || 'N/A',
     cantidad: item.cantidad,
     precioUnitario: item.precioUnitario,
     subtotal: item.subtotal,
@@ -62,18 +54,17 @@ export function generarPresupuestoPDF(presupuesto, itemsConPrecios, tipoFactura)
     porcentajeImpuesto
   };
 
-  // Generar HTML del template
-  const htmlContent = getPresupuestoTemplate(templateData);
+  // Generar HTML del presupuesto
+  const htmlContent = getPresupuestoHTML(templateData);
 
-  // Escribir en la ventana
-  printWindow.document.open();
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+  // Crear blob con el HTML
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
 
-  // Esperar a que se cargue y luego imprimir
-  printWindow.onload = () => {
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
+  // Retornar URL y función de limpieza
+  return {
+    url,
+    fileName: `Presupuesto_${presupuestoId}_${presupuesto?.fields.Cliente?.replace(/\s+/g, '_')}.html`,
+    cleanup: () => URL.revokeObjectURL(url)
   };
 }

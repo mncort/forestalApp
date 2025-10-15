@@ -24,17 +24,19 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" data-theme="dark">
       <body
-        className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`size-full ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CatalogProvider>
-          <Header />
-          <div className="flex">
-            <Sidebar />
-            <main className="flex-1 bg-base-200 min-h-[calc(100vh-4rem)]">
-              {children}
-            </main>
+          <div className="h-screen flex flex-col overflow-hidden">
+            <Header />
+            <div className="flex-1 min-h-0 flex overflow-hidden">
+              <Sidebar />
+              <main className="flex-1 bg-base-200 overflow-auto"> 
+                {children}
+              </main>
+            </div>
+            <ToastProvider />
           </div>
-          <ToastProvider />
         </CatalogProvider>
       </body>
     </html>

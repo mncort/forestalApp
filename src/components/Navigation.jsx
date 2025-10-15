@@ -16,7 +16,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-base-100 border-r border-base-300 min-h-screen sticky top-16">
+    <aside className="w-64 h-full shrink-0 bg-base-100 border-r border-base-300 overflow-y-auto">
       <ul className="menu p-4 w-full">
         {menuItems.map((item) => {
           const Icon = item.icon;

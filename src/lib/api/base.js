@@ -53,9 +53,6 @@ export const fetchRecords = async (tableId, options = {}) => {
 
     const url = `${NOCODB_URL}/api/v3/data/${BASE_ID}/${tableId}/records?${params}`;
 
-    console.log('🔍 Fetching URL:', url);
-    if (nested) console.log('📦 Nested config:', nested);
-
     const response = await fetch(url, { headers: HEADERS });
 
     if (!response.ok) {

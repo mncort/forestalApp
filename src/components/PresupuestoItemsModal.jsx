@@ -35,6 +35,8 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
 
   // Estados para tracking de cambios y modal de agregar producto
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [showPDFModal, setShowPDFModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingChanges, setPendingChanges] = useState({
     tipoFactura: null,
@@ -52,8 +54,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
     if (show && presupuesto) {
       // Cargar items del presupuesto
       cargarItems();
-      // Cargar productos iniciales
-      buscarProductos('');
+      // NO cargamos productos aquí - solo cuando se abre el modal de agregar
       setTipoFactura(presupuesto?.fields?.TipoFactura || 'con_factura');
       // Reset pending changes when opening modal
       setPendingChanges({
@@ -75,16 +76,24 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
     }
   }, [tipoFactura, presupuesto]);
 
-  // Buscar productos cuando cambia el término de búsqueda (con debounce)
+  // Cargar productos iniciales cuando se abre el modal de agregar
   useEffect(() => {
-    if (!show) return;
+    if (showAddProductModal) {
+      buscarProductos(''); // Cargar productos iniciales
+    }
+  }, [showAddProductModal]);
+
+  // Buscar productos cuando cambia el término de búsqueda (con debounce)
+  // SOLO cuando el modal de agregar está abierto
+  useEffect(() => {
+    if (!show || !showAddProductModal) return;
 
     const timeoutId = setTimeout(() => {
       buscarProductos(searchTerm);
     }, 300); // Esperar 300ms después de que el usuario deje de escribir
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, show]);
+  }, [searchTerm, show, showAddProductModal]);
 
   // Actualizar posición del dropdown cuando se abre
   useEffect(() => {
@@ -194,15 +203,20 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
     }
 
     // Agregar a items locales con ID temporal
+    // Importante: incluir nc_1g29__Productos_id con los datos del producto para que coincida
+    // con el formato del nested query que trae getItemsByPresupuesto
     const nuevoItem = {
       id: `temp-${Date.now()}`,
       isNew: true,
       fields: {
         nc_1g29___Presupuestos_id: presupuesto.id,
-        nc_1g29__Productos_id: selectedProducto,
-        Productos: {
+        nc_1g29__Productos_id: {
           id: producto.id,
-          fields: producto.fields
+          Nombre: producto.fields.Nombre,
+          SKU: producto.fields.SKU,
+          Descripcion: producto.fields.Descripcion,
+          Subcategoria: producto.fields.Subcategoria,
+          Markup: producto.fields.Markup
         },
         Cantidad: cantidad,
         PrecioUnitario: precioCalc.precioVenta,
@@ -324,7 +338,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
       for (const item of pendingChanges.itemsToAdd) {
         await crearPresupuestoItem({
           nc_1g29___Presupuestos_id: item.fields.nc_1g29___Presupuestos_id,
-          nc_1g29__Productos_id: item.fields.nc_1g29__Productos_id,
+          nc_1g29__Productos_id: item.fields.nc_1g29__Productos_id.id, // Solo enviar el ID
           Cantidad: item.fields.Cantidad,
           PrecioUnitario: item.fields.PrecioUnitario,
           Markup: item.fields.Markup,
@@ -353,12 +367,8 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
   // Calcular precios de items para mostrar (con useMemo para optimizar)
   const itemsConPrecios = useMemo(() => {
     return items.map(item => {
-      console.log("ITEM",item)
-      // El producto puede venir de nested query o de la lista de productos
+      // El producto viene SIEMPRE del nested query que trae getItemsByPresupuesto
       const productoNested = item.fields.nc_1g29__Productos_id;
-      console.log("PRODUCTO NESTED",productoNested)
-      const productoFromList = productos.find(p => p.id === item.fields.Productos?.id);
-      console.log("PRODUCTO FROM LIST",productoFromList)
 
       const precioUnitario = parseFloat(item.fields.PrecioUnitario) || 0;
       const cantidad = parseFloat(item.fields.Cantidad) || 0;
@@ -366,14 +376,13 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
 
       return {
         ...item,
-        producto: productoFromList, // Para compatibilidad con código existente
-        productoNested, // Los datos que vienen del nested
+        productoNested, // Los datos completos del producto vienen del nested
         precioUnitario,
         cantidad,
         subtotal
       };
     });
-  }, [items, productos]);
+  }, [items]); // Ya no dependemos del array productos
 
   // Calcular totales del presupuesto (con useMemo para optimizar)
   const totales = useMemo(() => {
@@ -390,7 +399,14 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
 
   // Generar PDF del presupuesto
   const handleGenerarPDF = () => {
-    generarPresupuestoPDF(presupuesto, itemsConPrecios, tipoFactura);
+    try {
+      const { url } = generarPresupuestoPDF(presupuesto, itemsConPrecios, tipoFactura);
+      setPdfUrl(url);
+      setShowPDFModal(true);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      alert(error.message);
+    }
   };
 
   if (!show) return null;
@@ -731,6 +747,48 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
             setSelectedProducto('');
             setCantidad(1);
             setSearchTerm('');
+          }}></div>
+        </div>
+      )}
+
+      {/* Modal de visualización de PDF */}
+      {showPDFModal && pdfUrl && (
+        <div className="modal modal-open" style={{ zIndex: 1002 }}>
+          <div className="modal-box max-w-7xl h-[90vh] p-0 overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-base-300">
+              <h3 className="font-bold text-lg">Vista Previa del Presupuesto</h3>
+              <button
+                onClick={() => {
+                  setShowPDFModal(false);
+                  // Cleanup URL after modal closes
+                  setTimeout(() => {
+                    if (pdfUrl) {
+                      URL.revokeObjectURL(pdfUrl);
+                      setPdfUrl(null);
+                    }
+                  }, 100);
+                }}
+                className="btn btn-ghost btn-sm btn-square"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0"
+              style={{ height: 'calc(90vh - 70px)' }}
+              title="Presupuesto PDF"
+            />
+          </div>
+          <div className="modal-backdrop" onClick={() => {
+            setShowPDFModal(false);
+            // Cleanup URL after modal closes
+            setTimeout(() => {
+              if (pdfUrl) {
+                URL.revokeObjectURL(pdfUrl);
+                setPdfUrl(null);
+              }
+            }, 100);
           }}></div>
         </div>
       )}
