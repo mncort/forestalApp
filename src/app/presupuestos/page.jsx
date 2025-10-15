@@ -104,13 +104,13 @@ export default function PresupuestosPage() {
               >
                 <div className="card-body">
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
                         <FileText size={24} className="text-primary" />
                         <h3 className="card-title text-xl">Presupuesto #{String(presupuesto.id).substring(0, 8)}</h3>
                       </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm mb-3">
+                      <div className="flex flex-wrap gap-4 text-sm">
                         {presupuesto.fields.Cliente && (
                           <div className="flex items-center gap-1">
                             <span className="font-semibold">Cliente:</span>
@@ -131,12 +131,6 @@ export default function PresupuestosPage() {
                           </span>
                         </div>
                       </div>
-
-                      {presupuesto.fields.Descripcion && (
-                        <p className="text-base-content/70">
-                          {presupuesto.fields.Descripcion}
-                        </p>
-                      )}
                     </div>
 
                     <div className="flex items-center h-full gap-1">

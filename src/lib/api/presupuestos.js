@@ -63,11 +63,26 @@ export const getPresupuestoItems = async (options = {}) => {
 /**
  * Obtiene los items de un presupuesto específico
  * @param {string} presupuestoId - ID del presupuesto
+ * @param {Object} options - Opciones adicionales (nested, fields, etc.)
  * @returns {Promise<Array>} Array de items del presupuesto
  */
-export const getItemsByPresupuesto = async (presupuestoId) => {
+export const getItemsByPresupuesto = async (presupuestoId, options = {}) => {
   const where = `(nc_1g29___Presupuestos_id,eq,${presupuestoId})`;
-  return fetchRecords(TABLES.presupuestoItems, { where });
+
+  // Por defecto, traer el producto relacionado (sin limitar campos del item)
+  const defaultOptions = {
+    where,
+    nested: {
+      'nc_1g29__Productos_id': {
+        fields: 'Nombre,SKU'
+      }
+    }
+  };
+
+  // Merge con las opciones provistas
+  const mergedOptions = { ...defaultOptions, ...options };
+
+  return fetchRecords(TABLES.presupuestoItems, mergedOptions);
 };
 
 /**

@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Navigation";
 import ToastProvider from "@/components/ToastProvider";
+import { CatalogProvider } from "@/context/CatalogContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,18 +22,20 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" data-theme="light">
+    <html lang="es" data-theme="dark">
       <body
         className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header />
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 bg-base-200 min-h-[calc(100vh-4rem)]">
-            {children}
-          </main>
-        </div>
-        <ToastProvider />
+        <CatalogProvider>
+          <Header />
+          <div className="flex">
+            <Sidebar />
+            <main className="flex-1 bg-base-200 min-h-[calc(100vh-4rem)]">
+              {children}
+            </main>
+          </div>
+          <ToastProvider />
+        </CatalogProvider>
       </body>
     </html>
   );

@@ -20,6 +20,8 @@ export class ApiError extends Error {
  * @param {number} options.offset - Offset para paginación
  * @param {string} options.where - Filtro WHERE en formato NocoDB
  * @param {string} options.sort - Ordenamiento
+ * @param {string} options.fields - Campos a retornar (separados por coma)
+ * @param {Object} options.nested - Objeto con relaciones anidadas a incluir
  * @returns {Promise<Array>} Array de registros
  */
 export const fetchRecords = async (tableId, options = {}) => {
@@ -27,7 +29,9 @@ export const fetchRecords = async (tableId, options = {}) => {
     limit = 100,
     offset = 0,
     where = null,
-    sort = null
+    sort = null,
+    fields = null,
+    nested = null
   } = options;
 
   try {
@@ -39,8 +43,18 @@ export const fetchRecords = async (tableId, options = {}) => {
 
     if (where) params.append('where', where);
     if (sort) params.append('sort', sort);
+    if (fields) params.append('fields', fields);
+
+    // Agregar nested si está presente
+    if (nested) {
+      // NocoDB v3 espera nested como un objeto JSON en el query param
+      params.append('nested', JSON.stringify(nested));
+    }
 
     const url = `${NOCODB_URL}/api/v3/data/${BASE_ID}/${tableId}/records?${params}`;
+
+    console.log('🔍 Fetching URL:', url);
+    if (nested) console.log('📦 Nested config:', nested);
 
     const response = await fetch(url, { headers: HEADERS });
 
