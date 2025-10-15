@@ -12,7 +12,9 @@ import {
   getProductos,
   countProductos
 } from '@/lib/api/index';
-import { generarPresupuestoPDF } from '@/lib/pdf/generarPresupuestoPDF';
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
+import PresupuestoPDF from '@/components/pdf/PresupuestoPDF';
+import { prepararDatosPresupuesto } from '@/lib/pdf/formatters';
 import { useCatalog } from '@/context/CatalogContext';
 
 export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSaved }) {
@@ -36,7 +38,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
   // Estados para tracking de cambios y modal de agregar producto
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showPDFModal, setShowPDFModal] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfData, setPdfData] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingChanges, setPendingChanges] = useState({
     tipoFactura: null,
@@ -400,8 +402,8 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
   // Generar PDF del presupuesto
   const handleGenerarPDF = () => {
     try {
-      const { url } = generarPresupuestoPDF(presupuesto, itemsConPrecios, tipoFactura);
-      setPdfUrl(url);
+      const datos = prepararDatosPresupuesto(presupuesto, itemsConPrecios, tipoFactura);
+      setPdfData(datos);
       setShowPDFModal(true);
     } catch (error) {
       console.error('Error generando PDF:', error);
@@ -752,43 +754,39 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
       )}
 
       {/* Modal de visualización de PDF */}
-      {showPDFModal && pdfUrl && (
+      {showPDFModal && pdfData && (
         <div className="modal modal-open" style={{ zIndex: 1002 }}>
-          <div className="modal-box max-w-7xl h-[90vh] p-0 overflow-hidden">
+          <div className="modal-box max-w-7xl h-[90vh] p-0 overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-base-300">
               <h3 className="font-bold text-lg">Vista Previa del Presupuesto</h3>
-              <button
-                onClick={() => {
-                  setShowPDFModal(false);
-                  // Cleanup URL after modal closes
-                  setTimeout(() => {
-                    if (pdfUrl) {
-                      URL.revokeObjectURL(pdfUrl);
-                      setPdfUrl(null);
-                    }
-                  }, 100);
-                }}
-                className="btn btn-ghost btn-sm btn-square"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex gap-2">
+                <PDFDownloadLink
+                  document={<PresupuestoPDF data={pdfData} />}
+                  fileName={`Presupuesto_${pdfData.presupuestoId}.pdf`}
+                  className="btn btn-primary btn-sm"
+                >
+                  {({ loading }) => (loading ? 'Generando...' : 'Descargar PDF')}
+                </PDFDownloadLink>
+                <button
+                  onClick={() => {
+                    setShowPDFModal(false);
+                    setPdfData(null);
+                  }}
+                  className="btn btn-ghost btn-sm btn-square"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full border-0"
-              style={{ height: 'calc(90vh - 70px)' }}
-              title="Presupuesto PDF"
-            />
+            <div className="flex-1" style={{ height: 'calc(90vh - 70px)' }}>
+              <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+                <PresupuestoPDF data={pdfData} />
+              </PDFViewer>
+            </div>
           </div>
           <div className="modal-backdrop" onClick={() => {
             setShowPDFModal(false);
-            // Cleanup URL after modal closes
-            setTimeout(() => {
-              if (pdfUrl) {
-                URL.revokeObjectURL(pdfUrl);
-                setPdfUrl(null);
-              }
-            }, 100);
+            setPdfData(null);
           }}></div>
         </div>
       )}

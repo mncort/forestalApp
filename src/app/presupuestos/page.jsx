@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, FileText, ShoppingCart, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, FileText, Eye, Calendar } from 'lucide-react';
 import { getPresupuestos, eliminarPresupuesto } from '@/lib/api/index';
 import { useNocoDB } from '@/hooks/useNocoDB';
 import PresupuestoModal from '@/components/PresupuestoModal';
@@ -139,10 +139,10 @@ export default function PresupuestosPage() {
                           setSelectedPresupuesto(presupuesto);
                           setShowItemsModal(true);
                         }}
-                        className="btn btn-ghost btn-sm btn-square tooltip tooltip-left text-info"
+                        className="btn btn-ghost btn-sm btn-square tooltip tooltip-left"
                         data-tip="Ver items"
                       >
-                        <ShoppingCart size={18} />
+                        <Eye size={18} />
                       </button>
                       <button
                         onClick={() => {
