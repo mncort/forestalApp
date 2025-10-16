@@ -1,7 +1,7 @@
 // Barrel file - Re-exporta todas las funciones de la API
 
 // Base
-export { ApiError, fetchRecords, createRecord, updateRecord, deleteRecord } from './base';
+export { ApiError, fetchRecords, createRecord, updateRecord, deleteRecord, countRecords } from './base';
 
 // Categorías
 export {
@@ -49,6 +49,23 @@ export {
   calcularPrecioProducto,
   calcularTotalPresupuesto
 } from './presupuestos';
+
+// Clientes
+export {
+  getClientes,
+  getClienteById,
+  countClientes,
+  crearCliente,
+  actualizarCliente,
+  validarCUIT,
+  validarEmail
+} from './clientes';
+
+// Dashboard
+export {
+  getResumenSemanal,
+  getDatosGraficos
+} from './dashboard';
 
 // Mantener compatibilidad con nombres antiguos (DEPRECADOS)
 // TODO: Remover cuando se actualicen todos los componentes

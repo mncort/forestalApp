@@ -8,16 +8,20 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "crear-admin": "node scripts/crear-admin.js"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.1",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.3",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
+    "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-hot-toast": "^2.6.0"
+    "react-hot-toast": "^2.6.0",
+    "recharts": "^3.2.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

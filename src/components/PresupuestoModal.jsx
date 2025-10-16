@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { crearPresupuesto, actualizarPresupuesto } from '@/lib/api/index';
+import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/lib/api/index';
 
 export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }) {
   const [formData, setFormData] = useState({
@@ -10,9 +10,26 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
     Estado: 'Borrador'
   });
   const [saving, setSaving] = useState(false);
+  const [clientes, setClientes] = useState([]);
+  const [loadingClientes, setLoadingClientes] = useState(false);
 
+  // Cargar lista de clientes cuando se abre el modal
   useEffect(() => {
     if (show) {
+      const cargarClientes = async () => {
+        setLoadingClientes(true);
+        try {
+          const clientesData = await getClientes({ limit: 100 });
+          setClientes(clientesData);
+        } catch (error) {
+          console.error('Error cargando clientes:', error);
+        } finally {
+          setLoadingClientes(false);
+        }
+      };
+
+      cargarClientes();
+
       if (presupuesto) {
         // Modo edición
         setFormData({
@@ -76,15 +93,35 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
             <label className="label">
               <span className="label-text">Cliente *</span>
             </label>
-            <input
-              type="text"
-              value={formData.Cliente}
-              onChange={(e) => setFormData({ ...formData, Cliente: e.target.value })}
-              className="input input-bordered"
-              required
-              disabled={saving}
-              placeholder="Nombre del cliente"
-            />
+            {loadingClientes ? (
+              <div className="flex items-center gap-2 p-3 bg-base-200 rounded-lg">
+                <span className="loading loading-spinner loading-sm"></span>
+                <span className="text-sm">Cargando clientes...</span>
+              </div>
+            ) : (
+              <select
+                value={formData.Cliente}
+                onChange={(e) => setFormData({ ...formData, Cliente: e.target.value })}
+                className="select select-bordered"
+                required
+                disabled={saving}
+              >
+                <option value="">Seleccionar cliente</option>
+                {clientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.fields.Nombre}>
+                    {cliente.fields.Nombre}
+                    {cliente.fields.CUIT && ` - ${cliente.fields.CUIT}`}
+                  </option>
+                ))}
+              </select>
+            )}
+            {clientes.length === 0 && !loadingClientes && (
+              <label className="label">
+                <span className="label-text-alt text-warning">
+                  No hay clientes registrados. Crea uno primero en la sección Clientes.
+                </span>
+              </label>
+            )}
           </div>
 
           <div className="form-control">

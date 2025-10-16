@@ -1,4 +1,4 @@
-import { NOCODB_URL, HEADERS, BASE_ID } from '../nocodb-config';
+import { NOCODB_URL, HEADERS, BASE_ID } from '../nocodb-config.js';
 
 /**
  * Clase de error personalizada para errores de API
@@ -22,7 +22,8 @@ export class ApiError extends Error {
  * @param {string} options.sort - Ordenamiento
  * @param {string} options.fields - Campos a retornar (separados por coma)
  * @param {Object} options.nested - Objeto con relaciones anidadas a incluir
- * @returns {Promise<Array>} Array de registros
+ * @param {boolean} options.returnMeta - Si es true, retorna también el count total
+ * @returns {Promise<Array|Object>} Array de registros, o {records, count} si returnMeta=true
  */
 export const fetchRecords = async (tableId, options = {}) => {
   const {
@@ -31,7 +32,8 @@ export const fetchRecords = async (tableId, options = {}) => {
     where = null,
     sort = null,
     fields = null,
-    nested = null
+    nested = null,
+    returnMeta = false
   } = options;
 
   try {
@@ -65,7 +67,18 @@ export const fetchRecords = async (tableId, options = {}) => {
     }
 
     const data = await response.json();
-    return data.records || data.list || [];
+    const records = data.records || data.list || [];
+
+    // NocoDB v3 incluye el count en la respuesta
+    if (returnMeta && data.pageInfo) {
+      const count = data.pageInfo.totalRows || records.length;
+      return {
+        records,
+        count
+      };
+    }
+
+    return records;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -185,6 +198,37 @@ export const deleteRecord = async (tableId, recordId) => {
     }
     throw new ApiError(
       `Error de conexión: ${error.message}`,
+      0,
+      null
+    );
+  }
+};
+
+/**
+ * Función para contar registros en una tabla
+ * Usa fetchRecords con limit=1 para obtener el count de pageInfo
+ * @param {string} tableId - ID de la tabla en NocoDB
+ * @param {Object} options - Opciones de filtrado
+ * @param {string} options.where - Filtro WHERE en formato NocoDB
+ * @returns {Promise<number>} Cantidad de registros
+ */
+export const countRecords = async (tableId, options = {}) => {
+  try {
+    // Usar fetchRecords con limit=1 y returnMeta=true para obtener solo el count
+    const { count } = await fetchRecords(tableId, {
+      ...options,
+      limit: 1,
+      offset: 0,
+      returnMeta: true
+    });
+
+    return count || 0;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      `Error al contar registros: ${error.message}`,
       0,
       null
     );

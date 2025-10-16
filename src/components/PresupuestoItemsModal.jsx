@@ -145,22 +145,30 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
       let opciones = { limit: 25 };
 
       if (termino && termino.trim() !== '') {
-        // Buscar por nombre o SKU usando filtro de NocoDB
-        // El formato de NocoDB para OR es: (Nombre,like,%termino%)~or(SKU,like,%termino%)
-        const terminoBusqueda = termino.trim();
-        opciones.where = `(Nombre,like,%${terminoBusqueda}%)~or(SKU,like,%${terminoBusqueda}%)`;
+        // Reemplazar comillas dobles por comodín _ (cualquier carácter)
+        // para que la búsqueda funcione sin romper la sintaxis de NocoDB
+        const terminoLimpio = termino.trim().replace(/"/g, '_');
+        opciones.where = `(Nombre,like,%${terminoLimpio}%)~or(SKU,like,%${terminoLimpio}%)`;
       }
 
-      // Obtener productos y count en paralelo
-      const [prods, count] = await Promise.all([
-        getProductos(opciones),
-        countProductos(opciones.where ? { where: opciones.where } : {})
-      ]);
+      // Obtener productos
+      const prods = await getProductos(opciones);
+
+      // Obtener count solo si no hay errores
+      let count = 0;
+      try {
+        count = await countProductos(opciones.where ? { where: opciones.where } : {});
+      } catch (e) {
+        console.warn('Error al contar productos, usando length:', e);
+        count = prods.length;
+      }
 
       setProductos(prods);
       setTotalProductos(count);
     } catch (error) {
       console.error('Error buscando productos:', error);
+      setProductos([]);
+      setTotalProductos(0);
     } finally {
       setLoadingProductos(false);
     }
