@@ -1,68 +1,34 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit2, User } from 'lucide-react';
 import { getClientes, countClientes } from '@/lib/api/index';
-import ClienteModal from '@/components/ClienteModal';
+import { usePagination } from '@/hooks/usePagination';
+import ClienteModal from '@/components/modals/clientes/ClienteModal';
 
 export default function ClientesPage() {
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [showClienteModal, setShowClienteModal] = useState(false);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [clientesPorPagina, setClientesPorPagina] = useState(10);
-  const [clientes, setClientes] = useState([]);
-  const [totalClientes, setTotalClientes] = useState(0);
-  const [loadingClientes, setLoadingClientes] = useState(false);
 
-  // Cargar clientes paginados desde el servidor
-  useEffect(() => {
-    const cargarClientes = async () => {
-      setLoadingClientes(true);
-      try {
-        const offset = (paginaActual - 1) * clientesPorPagina;
-        const [clientesData, count] = await Promise.all([
-          getClientes({ limit: clientesPorPagina, offset }),
-          countClientes()
-        ]);
-        setClientes(clientesData);
-        setTotalClientes(count);
-      } catch (err) {
-        console.error('Error cargando clientes:', err);
-      } finally {
-        setLoadingClientes(false);
-      }
-    };
-
-    cargarClientes();
-  }, [paginaActual, clientesPorPagina]);
-
-  // Calcular paginación
-  const totalPaginas = Math.ceil(totalClientes / clientesPorPagina);
-  const inicio = (paginaActual - 1) * clientesPorPagina;
-  const fin = inicio + clientesPorPagina;
-
-  // Resetear a página 1 cuando cambia el número de clientes por página
-  const handleCambioClientesPorPagina = (nuevaCantidad) => {
-    setClientesPorPagina(nuevaCantidad);
-    setPaginaActual(1);
-  };
-
-  // Función reload completa
-  const reload = async () => {
-    setLoadingClientes(true);
-    try {
-      const offset = (paginaActual - 1) * clientesPorPagina;
-      const [clientesData, count] = await Promise.all([
-        getClientes({ limit: clientesPorPagina, offset }),
-        countClientes()
-      ]);
-      setClientes(clientesData);
-      setTotalClientes(count);
-    } catch (err) {
-      console.error('Error recargando clientes:', err);
-    } finally {
-      setLoadingClientes(false);
-    }
-  };
+  // Usar hook de paginación
+  const {
+    datos: clientes,
+    loading: loadingClientes,
+    paginaActual,
+    itemsPorPagina: clientesPorPagina,
+    totalItems: totalClientes,
+    totalPaginas,
+    inicio,
+    fin,
+    hayPaginaAnterior,
+    hayPaginaSiguiente,
+    irAPagina,
+    irAPrimeraPagina,
+    irAUltimaPagina,
+    irAPaginaAnterior,
+    irAPaginaSiguiente,
+    cambiarItemsPorPagina,
+    recargar: reload
+  } = usePagination(getClientes, countClientes, 10);
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -165,7 +131,7 @@ export default function ClientesPage() {
                     <label className="text-sm text-base-content/70">Por página:</label>
                     <select
                       value={clientesPorPagina}
-                      onChange={(e) => handleCambioClientesPorPagina(parseInt(e.target.value))}
+                      onChange={(e) => cambiarItemsPorPagina(parseInt(e.target.value))}
                       className="select select-bordered select-sm"
                     >
                       <option value={10}>10</option>
@@ -179,15 +145,15 @@ export default function ClientesPage() {
                 {/* Botones de navegación */}
                 <div className="join">
                   <button
-                    onClick={() => setPaginaActual(1)}
-                    disabled={paginaActual === 1}
+                    onClick={irAPrimeraPagina}
+                    disabled={!hayPaginaAnterior}
                     className="join-item btn btn-sm"
                   >
                     ««
                   </button>
                   <button
-                    onClick={() => setPaginaActual(paginaActual - 1)}
-                    disabled={paginaActual === 1}
+                    onClick={irAPaginaAnterior}
+                    disabled={!hayPaginaAnterior}
                     className="join-item btn btn-sm"
                   >
                     «
@@ -196,15 +162,15 @@ export default function ClientesPage() {
                     Página {paginaActual} de {totalPaginas}
                   </button>
                   <button
-                    onClick={() => setPaginaActual(paginaActual + 1)}
-                    disabled={paginaActual === totalPaginas}
+                    onClick={irAPaginaSiguiente}
+                    disabled={!hayPaginaSiguiente}
                     className="join-item btn btn-sm"
                   >
                     »
                   </button>
                   <button
-                    onClick={() => setPaginaActual(totalPaginas)}
-                    disabled={paginaActual === totalPaginas}
+                    onClick={irAUltimaPagina}
+                    disabled={!hayPaginaSiguiente}
                     className="join-item btn btn-sm"
                   >
                     »»

@@ -18,3 +18,11 @@ textarea,
   -moz-user-select: text;
   -ms-user-select: text;
 }
+@layer components {
+  .btn,
+  .btn:hover,
+  .btn:focus,
+  .btn:active {
+    box-shadow: none !important;
+  }
+}

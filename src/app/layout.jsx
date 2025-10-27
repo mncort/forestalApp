@@ -1,7 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Navigation";
 import ToastProvider from "@/components/ToastProvider";
 import { CatalogProvider } from "@/context/CatalogContext";
 import SessionProvider from "@/components/SessionProvider";
@@ -27,20 +25,12 @@ export default function RootLayout({ children }) {
       <body
         className={`size-full ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* <SessionProvider> */}
+        <SessionProvider>
           <CatalogProvider>
-            <div className="h-screen flex flex-col overflow-hidden">
-              <Header />
-              <div className="flex-1 min-h-0 flex overflow-hidden">
-                <Sidebar />
-                <main className="flex-1 bg-base-200 overflow-auto">
-                  {children}
-                </main>
-              </div>
-              <ToastProvider />
-            </div>
+            <ToastProvider />
+            {children}
           </CatalogProvider>
-        {/* </SessionProvider> */}
+        </SessionProvider>
       </body>
     </html>
   );

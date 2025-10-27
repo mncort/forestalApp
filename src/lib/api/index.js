@@ -66,10 +66,3 @@ export {
   getResumenSemanal,
   getDatosGraficos
 } from './dashboard';
-
-// Mantener compatibilidad con nombres antiguos (DEPRECADOS)
-// TODO: Remover cuando se actualicen todos los componentes
-export { getCategorias as fetchCategorias } from './categorias';
-export { getSubcategorias as fetchSubcategorias } from './categorias';
-export { getProductos as fetchProductos } from './productos';
-export { getCostos as fetchCostos } from './costos';

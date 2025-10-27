@@ -1,11 +1,11 @@
 'use client'
 import React, { useState } from 'react';
 import { Plus, Edit2, Folder, ChevronRight } from 'lucide-react';
-import { fetchCategorias, fetchSubcategorias } from '@/lib/api/index';
+import { getCategorias, getSubcategorias } from '@/lib/api/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
 import { NOCODB_URL } from '@/lib/nocodb-config';
-import CategoryModal from '@/components/CategoryModal';
-import SubcategoryModal from '@/components/SubcategoryModal';
+import CategoryModal from '@/components/modals/categorias/CategoryModal';
+import SubcategoryModal from '@/components/modals/categorias/SubcategoryModal';
 
 export default function CategoriasPage() {
   const [expandedCategories, setExpandedCategories] = useState(new Set());
@@ -16,8 +16,8 @@ export default function CategoriasPage() {
   const [currentCategoriaId, setCurrentCategoriaId] = useState(null);
 
   const { data, loading, error, reload } = useNocoDBMultiple({
-    categorias: fetchCategorias,
-    subcategorias: fetchSubcategorias
+    categorias: getCategorias,
+    subcategorias: getSubcategorias
   });
 
   const categorias = data.categorias || [];

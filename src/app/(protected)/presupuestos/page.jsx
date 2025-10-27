@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, FileText, Eye, Calendar } from 'lucide-react';
 import { getPresupuestos, eliminarPresupuesto } from '@/lib/api/index';
 import { useNocoDB } from '@/hooks/useNocoDB';
-import PresupuestoModal from '@/components/PresupuestoModal';
-import PresupuestoItemsModal from '@/components/PresupuestoItemsModal';
+import PresupuestoModal from '@/components/modals/presupuestos/PresupuestoModal';
+import PresupuestoItemsModal from '@/components/modals/presupuestos/PresupuestoItemsModal';
 
 export default function PresupuestosPage() {
   const [selectedPresupuesto, setSelectedPresupuesto] = useState(null);

@@ -1,72 +1,54 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit2, History, DollarSign, Package } from 'lucide-react';
-import { fetchCategorias, fetchSubcategorias, getProductos, countProductos, fetchCostos, getCostoActual } from '@/lib/api/index';
+import { getCategorias, getSubcategorias, getProductos, countProductos, getCostos, getCostoActual } from '@/lib/api/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
-import CostModal from '@/components/CostModal';
-import HistoryModal from '@/components/HistoryModal';
-import ProductModal from '@/components/ProductModal';
+import { usePagination } from '@/hooks/usePagination';
+import CostModal from '@/components/modals/productos/CostModal';
+import HistoryModal from '@/components/modals/productos/HistoryModal';
+import ProductModal from '@/components/modals/productos/ProductModal';
 
 export default function ProductosPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showCostModal, setShowCostModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [productosPorPagina, setProductosPorPagina] = useState(10);
-  const [productos, setProductos] = useState([]);
-  const [totalProductos, setTotalProductos] = useState(0);
-  const [loadingProductos, setLoadingProductos] = useState(false);
 
   // Cargar categorías, subcategorías y costos (sin paginación)
   const { data, loading, error, reload: reloadOtros } = useNocoDBMultiple({
-    categorias: fetchCategorias,
-    subcategorias: fetchSubcategorias,
-    costos: fetchCostos
+    categorias: getCategorias,
+    subcategorias: getSubcategorias,
+    costos: getCostos
   });
 
   const categorias = data.categorias || [];
   const subcategorias = data.subcategorias || [];
   const costos = data.costos || [];
 
-  // Cargar productos paginados desde el servidor
-  useEffect(() => {
-    const cargarProductos = async () => {
-      setLoadingProductos(true);
-      try {
-        const offset = (paginaActual - 1) * productosPorPagina;
-        const [prods, count] = await Promise.all([
-          getProductos({ limit: productosPorPagina, offset }),
-          countProductos()
-        ]);
-        setProductos(prods);
-        setTotalProductos(count);
-      } catch (err) {
-        console.error('Error cargando productos:', err);
-      } finally {
-        setLoadingProductos(false);
-      }
-    };
-
-    cargarProductos();
-  }, [paginaActual, productosPorPagina]);
-
-  // Calcular paginación
-  const totalPaginas = Math.ceil(totalProductos / productosPorPagina);
-  const inicio = (paginaActual - 1) * productosPorPagina;
-  const fin = inicio + productosPorPagina;
-
-  // Resetear a página 1 cuando cambia el número de productos por página
-  const handleCambioProductosPorPagina = (nuevaCantidad) => {
-    setProductosPorPagina(nuevaCantidad);
-    setPaginaActual(1);
-  };
+  // Usar hook de paginación para productos
+  const {
+    datos: productos,
+    loading: loadingProductos,
+    paginaActual,
+    itemsPorPagina: productosPorPagina,
+    totalItems: totalProductos,
+    totalPaginas,
+    inicio,
+    fin,
+    hayPaginaAnterior,
+    hayPaginaSiguiente,
+    irAPrimeraPagina,
+    irAUltimaPagina,
+    irAPaginaAnterior,
+    irAPaginaSiguiente,
+    cambiarItemsPorPagina,
+    recargar: recargarProductos
+  } = usePagination(getProductos, countProductos, 10);
 
   // Función reload completa
   const reload = () => {
     reloadOtros();
-    // Recargar productos forzando el useEffect
-    setPaginaActual(p => p);
+    recargarProductos();
   };
 
   if (loading) {
@@ -220,7 +202,7 @@ export default function ProductosPage() {
                     <label className="text-sm text-base-content/70">Por página:</label>
                     <select
                       value={productosPorPagina}
-                      onChange={(e) => handleCambioProductosPorPagina(parseInt(e.target.value))}
+                      onChange={(e) => cambiarItemsPorPagina(parseInt(e.target.value))}
                       className="select select-bordered select-sm"
                     >
                       <option value={10}>10</option>
@@ -234,15 +216,15 @@ export default function ProductosPage() {
                 {/* Botones de navegación */}
                 <div className="join">
                   <button
-                    onClick={() => setPaginaActual(1)}
-                    disabled={paginaActual === 1}
+                    onClick={irAPrimeraPagina}
+                    disabled={!hayPaginaAnterior}
                     className="join-item btn btn-sm"
                   >
                     ««
                   </button>
                   <button
-                    onClick={() => setPaginaActual(paginaActual - 1)}
-                    disabled={paginaActual === 1}
+                    onClick={irAPaginaAnterior}
+                    disabled={!hayPaginaAnterior}
                     className="join-item btn btn-sm"
                   >
                     «
@@ -251,15 +233,15 @@ export default function ProductosPage() {
                     Página {paginaActual} de {totalPaginas}
                   </button>
                   <button
-                    onClick={() => setPaginaActual(paginaActual + 1)}
-                    disabled={paginaActual === totalPaginas}
+                    onClick={irAPaginaSiguiente}
+                    disabled={!hayPaginaSiguiente}
                     className="join-item btn btn-sm"
                   >
                     »
                   </button>
                   <button
-                    onClick={() => setPaginaActual(totalPaginas)}
-                    disabled={paginaActual === totalPaginas}
+                    onClick={irAUltimaPagina}
+                    disabled={!hayPaginaSiguiente}
                     className="join-item btn btn-sm"
                   >
                     »»
