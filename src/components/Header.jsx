@@ -5,11 +5,11 @@ import { useSession, signOut } from 'next-auth/react';
 import { LogOut, User } from 'lucide-react';
 
 export default function Header() {
-  const { data: session } = useSession();
+/*   const { data: session } = useSession();
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
-  };
+  }; */
 
   return (
     <div className="navbar h-16 bg-base-100 border-b border-base-300 px-5 sticky top-0 z-20">
@@ -34,19 +34,19 @@ export default function Header() {
             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow border border-base-300">
             <li className="menu-title px-4 py-2">
               <div className="flex flex-col">
-                <span className="font-semibold text-base-content">{session?.user?.name}</span>
+                {/* <span className="font-semibold text-base-content">{session?.user?.name}</span>
                 <span className="text-xs text-base-content/60">{session?.user?.email}</span>
                 {session?.user?.rol && (
                   <span className="badge badge-sm badge-primary mt-1">{session?.user?.rol}</span>
-                )}
+                )} */}
               </div>
             </li>
             <div className="divider my-1"></div>
             <li>
-              <button onClick={handleLogout} className="text-error">
+{/*               <button onClick={handleLogout} className="text-error">
                 <LogOut size={16} />
                 Cerrar Sesión
-              </button>
+              </button> */}
             </li>
           </ul>
         </div>

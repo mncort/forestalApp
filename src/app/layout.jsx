@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
       <body
         className={`size-full ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>
+        {/* <SessionProvider> */}
           <CatalogProvider>
             <div className="h-screen flex flex-col overflow-hidden">
               <Header />
@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
               <ToastProvider />
             </div>
           </CatalogProvider>
-        </SessionProvider>
+        {/* </SessionProvider> */}
       </body>
     </html>
   );

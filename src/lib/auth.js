@@ -25,11 +25,11 @@ export const authOptions = {
           }
 
           return {
-            id: usuario.Id.toString(),
-            email: usuario.Email,
-            name: `${usuario.Nombre} ${usuario.Apellido || ''}`.trim(),
-            username: usuario.Username,
-            rol: usuario.Rol
+            id: usuario.id.toString(),
+            email: usuario.fields.Email,
+            name: `${usuario.fields.Nombre} ${usuario.fields.Apellido || ''}`.trim(),
+            username: usuario.fields.Username,
+            rol: usuario.fields.Rol
           };
         } catch (error) {
           console.error('Error en authorize:', error);
@@ -53,6 +53,7 @@ export const authOptions = {
         session.user.username = token.username;
         session.user.rol = token.rol;
       }
+      console.log('Session callback:', session);
       return session;
     }
   },

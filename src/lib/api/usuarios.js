@@ -81,12 +81,13 @@ export const verificarCredenciales = async (identifier, password) => {
   }
 
   // Verificar si el usuario está activo
-  if (!usuario.activo) {
+  if (!usuario.fields.activo == 1) {
     throw new Error('Usuario inactivo');
   }
 
   // Verificar contraseña
-  const passwordMatch = await bcrypt.compare(password, usuario.Password);
+  const passwordMatch = await bcrypt.compare(password, usuario.fields.Password);
+
   if (!passwordMatch) {
     return null;
   }
