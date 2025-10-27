@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/lib/api/index';
+import toast from 'react-hot-toast';
 
 export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }) {
   const [formData, setFormData] = useState({
@@ -56,15 +57,17 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
       if (presupuesto) {
         // Actualizar
         await actualizarPresupuesto(presupuesto.id, formData);
+        toast.success('Presupuesto actualizado correctamente');
       } else {
         // Crear
         await crearPresupuesto(formData);
+        toast.success('Presupuesto creado correctamente');
       }
       onSaved();
       onClose();
     } catch (error) {
       console.error('Error al guardar presupuesto:', error);
-      alert('Error al guardar el presupuesto');
+      toast.error('Error al guardar el presupuesto');
     } finally {
       setSaving(false);
     }

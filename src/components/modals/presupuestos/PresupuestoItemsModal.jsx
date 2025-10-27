@@ -16,6 +16,7 @@ import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import PresupuestoPDF from '@/components/pdf/PresupuestoPDF';
 import { prepararDatosPresupuesto } from '@/lib/pdf/formatters';
 import { useCatalog } from '@/context/CatalogContext';
+import toast from 'react-hot-toast';
 
 export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSaved }) {
   // Usar el contexto del catálogo
@@ -197,7 +198,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
 
     if (!producto) {
       console.error('Producto no encontrado:', { selectedProducto, productoId, todosLosProductos: productos.map(p => p.id) });
-      alert('Error: No se encontró el producto seleccionado.');
+      toast.error('No se encontró el producto seleccionado');
       return;
     }
 
@@ -208,7 +209,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
     const precioCalc = calcularPrecioProducto(producto, subcategoria, categoria, costos);
 
     if (!precioCalc.tieneCosto) {
-      alert('Este producto no tiene un costo asignado. Por favor, asigna un costo antes de agregarlo al presupuesto.');
+      toast.error('Este producto no tiene un costo asignado. Por favor, asigna un costo antes de agregarlo al presupuesto');
       return;
     }
 
@@ -365,10 +366,11 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
         itemsToDelete: []
       });
       setHasUnsavedChanges(false);
+      toast.success('Cambios guardados correctamente');
       onSaved();
     } catch (error) {
       console.error('Error guardando cambios:', error);
-      alert('Error al guardar los cambios');
+      toast.error('Error al guardar los cambios');
     } finally {
       setSaving(false);
     }
@@ -415,7 +417,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
       setShowPDFModal(true);
     } catch (error) {
       console.error('Error generando PDF:', error);
-      alert(error.message);
+      toast.error(`Error al generar PDF: ${error.message}`);
     }
   };
 

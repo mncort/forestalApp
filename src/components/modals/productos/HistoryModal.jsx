@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
 import { getCostoActual } from '@/lib/api/index';
 import { NOCODB_URL, HEADERS, TABLES, BASE_ID } from '@/lib/nocodb-config';
+import { formatDate } from '@/lib/utils/formatting';
 
 export default function HistoryModal({ show, product, costos, onClose }) {
   const [costosHistoricos, setCostosHistoricos] = useState([]);
@@ -34,15 +35,6 @@ export default function HistoryModal({ show, product, costos, onClose }) {
   }, [show, product]);
 
   if (!show || !product) return null;
-
-  // Función helper para formatear fecha sin conversión de zona horaria
-  const formatearFecha = (fechaStr) => {
-    if (!fechaStr) return null;
-    // Si la fecha viene como YYYY-MM-DD, parsearla manualmente
-    const partes = fechaStr.split('T')[0].split('-');
-    const fecha = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-    return fecha.toLocaleDateString('es-AR');
-  };
 
   // Obtener todos los costos del producto (NO filtrar por valor)
   const costosProd = costos.filter(
@@ -118,8 +110,8 @@ export default function HistoryModal({ show, product, costos, onClose }) {
                           </p>
                         </div>
                         <div className="text-right text-sm">
-                          <p>Desde: {formatearFecha(item.fields.FechaDesde)}</p>
-                          <p>Hasta: {item.fields.FechaHasta ? formatearFecha(item.fields.FechaHasta) : '∞'}</p>
+                          <p>Desde: {formatDate(item.fields.FechaDesde)}</p>
+                          <p>Hasta: {item.fields.FechaHasta ? formatDate(item.fields.FechaHasta) : '∞'}</p>
                         </div>
                       </div>
                     </div>
@@ -141,8 +133,8 @@ export default function HistoryModal({ show, product, costos, onClose }) {
                         </p>
                       </div>
                       <div className="text-right text-sm">
-                        <p>Desde: {formatearFecha(costoActual.fields.FechaDesde)}</p>
-                        <p>Hasta: {costoActual.fields.FechaHasta ? formatearFecha(costoActual.fields.FechaHasta) : '∞'}</p>
+                        <p>Desde: {formatDate(costoActual.fields.FechaDesde)}</p>
+                        <p>Hasta: {costoActual.fields.FechaHasta ? formatDate(costoActual.fields.FechaHasta) : '∞'}</p>
                       </div>
                     </div>
                   </div>
@@ -165,8 +157,8 @@ export default function HistoryModal({ show, product, costos, onClose }) {
                           </p>
                         </div>
                         <div className="text-right text-sm text-base-content/70">
-                          <p>Desde: {formatearFecha(item.fields.FechaDesde)}</p>
-                          <p>Hasta: {item.fields.FechaHasta ? formatearFecha(item.fields.FechaHasta) : '∞'}</p>
+                          <p>Desde: {formatDate(item.fields.FechaDesde)}</p>
+                          <p>Hasta: {item.fields.FechaHasta ? formatDate(item.fields.FechaHasta) : '∞'}</p>
                         </div>
                       </div>
                     </div>
