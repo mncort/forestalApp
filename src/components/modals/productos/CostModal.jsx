@@ -1,38 +1,43 @@
 'use client'
-import React, { useState } from 'react';
-import toast from 'react-hot-toast';
+import React from 'react';
+import { useFormModal } from '@/hooks/useFormModal';
 import { NOCODB_URL, HEADERS, TABLES } from '@/lib/nocodb-config';
-import { getCostosByProducto, updateRecord } from '@/lib/api/index';
+import { getCostosByProducto, updateRecord, createRecord } from '@/lib/api/index';
+import { validarNumeroPositivo, mensajesError } from '@/lib/utils/validation';
 
 export default function CostModal({ show, product, onClose, onSaved }) {
-  const [formData, setFormData] = useState({
-    costo: '',
-    moneda: 'ARS',
-    fechaDesde: new Date().toISOString().split('T')[0],
-    fechaHasta: ''
-  });
-  const [saving, setSaving] = useState(false);
+  const { formData, updateField, handleSave, saving } = useFormModal({
+    entity: null, // Always create mode for costs
+    initialFormData: {
+      costo: '',
+      moneda: 'ARS',
+      fechaDesde: new Date().toISOString().split('T')[0],
+      fechaHasta: ''
+    },
+    validate: (data) => {
+      const errors = {};
 
-  if (!show || !product) return null;
+      // Usar validaciones centralizadas
+      if (!data.costo) {
+        errors.costo = 'Por favor ingresá un costo';
+      } else if (!validarNumeroPositivo(data.costo, false)) {
+        errors.costo = mensajesError.costoMayorCero;
+      }
 
-  const handleSave = async () => {
-    if (!formData.costo) {
-      toast.error('Por favor ingresá un costo');
-      return;
-    }
+      if (!data.fechaDesde) {
+        errors.fechaDesde = 'Por favor ingresá una fecha de inicio';
+      }
 
-    if (parseFloat(formData.costo) <= 0) {
-      toast.error('El costo debe ser mayor a 0');
-      return;
-    }
-
-    if (!formData.fechaDesde) {
-      toast.error('Por favor ingresá una fecha de inicio');
-      return;
-    }
-
-    setSaving(true);
-    try {
+      return { valid: Object.keys(errors).length === 0, errors };
+    },
+    transformData: (data) => ({
+      Costo: parseFloat(data.costo),
+      Moneda: data.moneda,
+      FechaDesde: data.fechaDesde,
+      FechaHasta: data.fechaHasta || null,
+      nc_1g29__Productos_id: product?.id
+    }),
+    onSave: async (data) => {
       // 1. Buscar si existe un costo previo sin fecha hasta
       const costosProducto = await getCostosByProducto(product.id);
 
@@ -43,58 +48,33 @@ export default function CostModal({ show, product, onClose, onSaved }) {
       // 2. Si existe un costo previo sin cerrar, actualizarlo con el día anterior al nuevo costo
       if (costoPrevioSinCierre) {
         // Calcular el día anterior a la fecha desde del nuevo costo
-        // Usar formato YYYY-MM-DD directamente para evitar problemas de zona horaria
-        const [year, month, day] = formData.fechaDesde.split('-').map(Number);
+        const [year, month, day] = data.FechaDesde.split('-').map(Number);
         const fechaHastaPrevio = new Date(year, month - 1, day - 1);
-
         const fechaHastaStr = fechaHastaPrevio.toISOString().split('T')[0];
 
-        // Actualizar el costo previo usando la función updateRecord
-        try {
-          await updateRecord(TABLES.costos, costoPrevioSinCierre.id, {
-            FechaHasta: fechaHastaStr
-          });
-        } catch (updateError) {
-          console.error('Error al actualizar costo previo:', updateError);
-          toast.error('Error al cerrar el costo previo');
-          setSaving(false);
-          return;
-        }
+        // Actualizar el costo previo
+        await updateRecord(TABLES.costos, costoPrevioSinCierre.id, {
+          FechaHasta: fechaHastaStr
+        });
       }
 
       // 3. Crear el nuevo costo
-      const response = await fetch(`${NOCODB_URL}/api/v2/tables/${TABLES.costos}/records`, {
-        method: 'POST',
-        headers: HEADERS,
-        body: JSON.stringify({
-          Costo: parseFloat(formData.costo),
-          Moneda: formData.moneda,
-          FechaDesde: formData.fechaDesde,
-          FechaHasta: formData.fechaHasta || null,
-          nc_1g29__Productos_id: product.id
-        })
-      });
+      await createRecord(TABLES.costos, data);
 
-      if (response.ok) {
-        await onSaved();
-        onClose();
-        setFormData({ costo: '', moneda: 'ARS', fechaDesde: new Date().toISOString().split('T')[0], fechaHasta: '' });
-        toast.success(costoPrevioSinCierre
-          ? 'Costo guardado y costo anterior cerrado exitosamente'
-          : 'Costo guardado exitosamente'
-        );
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Error al crear costo:', errorData);
-        toast.error(errorData.message || 'Error al guardar el costo');
-      }
-    } catch (err) {
-      console.error('Error:', err);
-      toast.error('Error de conexión con el servidor');
-    } finally {
-      setSaving(false);
+      // Return flag to customize success message
+      return { costoPrevioSinCierre };
+    },
+    onSuccess: async (result) => {
+      await onSaved();
+      onClose();
+    },
+    messages: {
+      created: 'Costo guardado exitosamente',
+      updated: 'Costo actualizado exitosamente'
     }
-  };
+  });
+
+  if (!show || !product) return null;
 
   return (
     <div className="modal modal-open">
@@ -113,7 +93,7 @@ export default function CostModal({ show, product, onClose, onSaved }) {
                 type="number"
                 step="0.01"
                 value={formData.costo}
-                onChange={(e) => setFormData({ ...formData, costo: e.target.value })}
+                onChange={(e) => updateField('costo', e.target.value)}
                 className="input input-bordered w-full"
                 placeholder="0.00"
               />
@@ -126,7 +106,7 @@ export default function CostModal({ show, product, onClose, onSaved }) {
             </label>
             <select
               value={formData.moneda}
-              onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
+              onChange={(e) => updateField('moneda', e.target.value)}
               className="select select-bordered w-full"
             >
               <option value="ARS">ARS - Peso Argentino</option>
@@ -141,7 +121,7 @@ export default function CostModal({ show, product, onClose, onSaved }) {
             <input
               type="date"
               value={formData.fechaDesde}
-              onChange={(e) => setFormData({ ...formData, fechaDesde: e.target.value })}
+              onChange={(e) => updateField('fechaDesde', e.target.value)}
               className="input input-bordered w-full"
             />
           </div>
@@ -153,7 +133,7 @@ export default function CostModal({ show, product, onClose, onSaved }) {
             <input
               type="date"
               value={formData.fechaHasta}
-              onChange={(e) => setFormData({ ...formData, fechaHasta: e.target.value })}
+              onChange={(e) => updateField('fechaHasta', e.target.value)}
               className="input input-bordered w-full"
             />
           </div>

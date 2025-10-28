@@ -40,16 +40,25 @@ export {
   getPresupuestoById,
   crearPresupuesto,
   actualizarPresupuesto,
-  eliminarPresupuesto,
+  eliminarPresupuesto
+} from './presupuestos';
+
+// Items de Presupuestos
+export {
   getPresupuestoItems,
   getItemsByPresupuesto,
   crearPresupuestoItem,
   actualizarPresupuestoItem,
-  eliminarPresupuestoItem,
+  eliminarPresupuestoItem
+} from './presupuestoItems';
+
+// Cálculos de presupuestos
+export {
   obtenerMarkupAplicable,
   calcularPrecioProducto,
-  calcularTotalPresupuesto
-} from './presupuestos';
+  calcularTotalPresupuesto,
+  aplicarDescuentoEfectivo
+} from '../calculations/presupuestos';
 
 // Clientes
 export {

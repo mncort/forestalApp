@@ -1,74 +1,79 @@
 'use client'
-import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import React from 'react';
+import { useFormModal } from '@/hooks/useFormModal';
 import { createRecord, updateRecord } from '@/lib/api/base';
 import { TABLES } from '@/lib/nocodb-config';
+import { validarTextoRequerido, mensajesError } from '@/lib/utils/validation';
 
 export default function SubcategoryModal({ show, subcategoria, categoriaId, onClose, onSaved }) {
-  const [formData, setFormData] = useState({
-    subcategoria: '',
-    descripcion: '',
-    markup: ''
-  });
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (subcategoria) {
-      // Modo edición
-      setFormData({
-        subcategoria: subcategoria.fields.Subcategoria || '',
-        descripcion: subcategoria.fields.Descripcion || '',
-        markup: subcategoria.fields.Markup || ''
-      });
-    } else {
-      // Modo creación
-      setFormData({
-        subcategoria: '',
-        descripcion: '',
-        markup: ''
-      });
+  // Transformar datos de la entidad para el hook
+  const transformedEntity = subcategoria ? {
+    fields: {
+      subcategoria: subcategoria.fields?.Subcategoria || '',
+      descripcion: subcategoria.fields?.Descripcion || '',
+      markup: subcategoria.fields?.Markup || ''
     }
-  }, [subcategoria]);
+  } : null;
 
-  if (!show) return null;
+  const {
+    formData,
+    updateField,
+    handleSave,
+    saving,
+    isEditMode
+  } = useFormModal({
+    entity: transformedEntity,
+    initialFormData: {
+      subcategoria: '',
+      descripcion: '',
+      markup: ''
+    },
+    validate: (data) => {
+      const errors = {};
 
-  const isEditMode = !!subcategoria;
-
-  const handleSave = async () => {
-    if (!formData.subcategoria.trim()) {
-      toast.error('Por favor ingresá el nombre de la subcategoría');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const recordData = {
-        Subcategoria: formData.subcategoria.trim(),
-        Descripcion: formData.descripcion.trim() || null,
-        Markup: formData.markup ? parseFloat(formData.markup) : null
-      };
-
-      if (isEditMode) {
-        // Actualizar subcategoría existente
-        await updateRecord(TABLES.subcategorias, subcategoria.id, recordData);
-        toast.success('Subcategoría actualizada exitosamente');
-      } else {
-        // Crear nueva subcategoría - necesita la relación con la categoría
-        recordData.nc_1g29__Categorias_id = categoriaId;
-        await createRecord(TABLES.subcategorias, recordData);
-        toast.success('Subcategoría creada exitosamente');
+      // Usar validaciones centralizadas
+      if (!validarTextoRequerido(data.subcategoria)) {
+        errors.subcategoria = mensajesError.textoRequerido('el nombre de la subcategoría');
       }
 
+      return {
+        valid: Object.keys(errors).length === 0,
+        errors
+      };
+    },
+    transformData: (data) => {
+      const recordData = {
+        Subcategoria: data.subcategoria.trim(),
+        Descripcion: data.descripcion.trim() || null,
+        Markup: data.markup ? parseFloat(data.markup) : null
+      };
+
+      // Agregar relación con categoría solo en modo creación
+      if (!subcategoria && categoriaId) {
+        recordData.nc_1g29__Categorias_id = categoriaId;
+      }
+
+      return recordData;
+    },
+    onSave: async (data, isEdit, id) => {
+      if (isEdit) {
+        await updateRecord(TABLES.subcategorias, id, data);
+      } else {
+        await createRecord(TABLES.subcategorias, data);
+      }
+    },
+    onSuccess: async () => {
       await onSaved();
       onClose();
-      setFormData({ subcategoria: '', descripcion: '', markup: '' });
-    } catch (err) {
-      console.error('Error:', err);
-      toast.error(err.message || 'Error al guardar la subcategoría');
-    } finally {
-      setSaving(false);
+    },
+    messages: {
+      created: 'Subcategoría creada exitosamente',
+      updated: 'Subcategoría actualizada exitosamente',
+      error: 'Error al guardar la subcategoría'
     }
-  };
+  });
+
+  if (!show) return null;
 
   return (
     <div className="modal modal-open">
@@ -88,7 +93,7 @@ export default function SubcategoryModal({ show, subcategoria, categoriaId, onCl
             <input
               type="text"
               value={formData.subcategoria}
-              onChange={(e) => setFormData({ ...formData, subcategoria: e.target.value })}
+              onChange={(e) => updateField('subcategoria', e.target.value)}
               className="input input-bordered w-full"
               placeholder="Ej: Pinos, Eucaliptos"
             />
@@ -100,7 +105,7 @@ export default function SubcategoryModal({ show, subcategoria, categoriaId, onCl
             </label>
             <textarea
               value={formData.descripcion}
-              onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+              onChange={(e) => updateField('descripcion', e.target.value)}
               className="textarea textarea-bordered w-full h-24"
               placeholder="Descripción de la subcategoría..."
             />
@@ -116,7 +121,7 @@ export default function SubcategoryModal({ show, subcategoria, categoriaId, onCl
                 step="0.01"
                 min="0"
                 value={formData.markup}
-                onChange={(e) => setFormData({ ...formData, markup: e.target.value })}
+                onChange={(e) => updateField('markup', e.target.value)}
                 className="input input-bordered w-full"
                 placeholder="0.00"
               />

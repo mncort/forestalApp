@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Forestal App
 
-## Getting Started
+Aplicación de gestión para Forestal Tigre.
 
-First, run the development server:
+## Documentación
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Toda la documentación del proyecto está en la carpeta `/docs`:
+
+- [Índice de Documentación](./docs/README.md)
+- [Análisis Inicial](./docs/ANALISIS.md)
+- [Plan de Refactorización](./docs/PLAN_REFACTORIZACION.md)
+- [Fase 1 Completada](./docs/FASE1_COMPLETADA.md)
+- [Fase 2 Completada](./docs/FASE2_COMPLETADA.md)
+
+## Estructura del Proyecto
+
+```
+src/
+├── app/              # Next.js App Router
+│   ├── (protected)/  # Rutas protegidas con autenticación
+│   └── (auth)/       # Rutas de autenticación
+├── components/       # Componentes React
+│   ├── modals/       # Modales de formularios
+│   └── tables/       # Componentes de tablas
+├── hooks/            # Custom hooks
+│   ├── useFormModal.js   # Hook para gestión de formularios modales
+│   └── useToast.js       # Hook para notificaciones
+├── lib/              # Utilidades y lógica de negocio
+│   ├── api/          # API de NocoDB
+│   ├── calculations/ # Lógica de cálculos
+│   └── utils/        # Utilidades (validaciones, formateo)
+└── context/          # Context providers
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** Next.js 15.5.4
+- **Base de Datos:** NocoDB
+- **UI:** DaisyUI + Tailwind CSS
+- **Iconos:** Lucide React
+- **Notificaciones:** React Hot Toast
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Desarrollo
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+La aplicación estará disponible en http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estado del Proyecto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+El proyecto ha completado dos fases de refactorización:
 
-## Deploy on Vercel
+- **Fase 1:** Separación de responsabilidades (API, cálculos, formateo)
+- **Fase 2:** Hooks reutilizables y validaciones centralizadas
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Para más detalles, consulta la [documentación completa](./docs/README.md).

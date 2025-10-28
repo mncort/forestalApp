@@ -1,71 +1,71 @@
 'use client'
-import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import React from 'react';
+import { useFormModal } from '@/hooks/useFormModal';
 import { createRecord, updateRecord } from '@/lib/api/base';
 import { TABLES } from '@/lib/nocodb-config';
+import { validarTextoRequerido, validarNumeroPositivo, mensajesError } from '@/lib/utils/validation';
 
 export default function CategoryModal({ show, category, onClose, onSaved }) {
-  const [formData, setFormData] = useState({
-    categoria: '',
-    markup: ''
-  });
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (category) {
-      setFormData({
-        categoria: category.fields.Categoria || '',
-        markup: category.fields.Markup || ''
-      });
-    } else {
-      setFormData({
-        categoria: '',
-        markup: ''
-      });
+  // Transformar datos de la entidad para el hook
+  const transformedEntity = category ? {
+    fields: {
+      categoria: category.fields?.Categoria || '',
+      markup: category.fields?.Markup || ''
     }
-  }, [category]);
+  } : null;
 
-  if (!show) return null;
+  const {
+    formData,
+    updateField,
+    handleSave,
+    saving,
+    isEditMode
+  } = useFormModal({
+    entity: transformedEntity,
+    initialFormData: {
+      categoria: '',
+      markup: ''
+    },
+    validate: (data) => {
+      const errors = {};
 
-  const isEditMode = !!category;
-
-  const handleSave = async () => {
-    if (!formData.categoria.trim()) {
-      toast.error('Por favor ingresá el nombre de la categoría');
-      return;
-    }
-
-    if (!formData.markup || parseFloat(formData.markup) < 0) {
-      toast.error('Por favor ingresá un porcentaje de ganancia válido');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (isEditMode) {
-        await updateRecord(TABLES.categorias, category.id, {
-          Categoria: formData.categoria.trim(),
-          Markup: parseFloat(formData.markup)
-        });
-        toast.success('Categoría actualizada exitosamente');
-      } else {
-        await createRecord(TABLES.categorias, {
-          Categoria: formData.categoria.trim(),
-          Markup: parseFloat(formData.markup)
-        });
-        toast.success('Categoría creada exitosamente');
+      // Usar validaciones centralizadas
+      if (!validarTextoRequerido(data.categoria)) {
+        errors.categoria = mensajesError.textoRequerido('el nombre de la categoría');
       }
 
+      if (!validarNumeroPositivo(data.markup, true)) {
+        errors.markup = mensajesError.markupInvalido;
+      }
+
+      return {
+        valid: Object.keys(errors).length === 0,
+        errors
+      };
+    },
+    transformData: (data) => ({
+      Categoria: data.categoria.trim(),
+      Markup: parseFloat(data.markup)
+    }),
+    onSave: async (data, isEdit, id) => {
+      if (isEdit) {
+        await updateRecord(TABLES.categorias, id, data);
+      } else {
+        await createRecord(TABLES.categorias, data);
+      }
+    },
+    onSuccess: async () => {
       await onSaved();
       onClose();
-      setFormData({ categoria: '', markup: '' });
-    } catch (err) {
-      console.error('Error:', err);
-      toast.error(err.message || 'Error al guardar la categoría');
-    } finally {
-      setSaving(false);
+    },
+    messages: {
+      created: 'Categoría creada exitosamente',
+      updated: 'Categoría actualizada exitosamente',
+      error: 'Error al guardar la categoría'
     }
-  };
+  });
+
+  if (!show) return null;
 
   return (
     <div className="modal modal-open">
@@ -85,7 +85,7 @@ export default function CategoryModal({ show, category, onClose, onSaved }) {
             <input
               type="text"
               value={formData.categoria}
-              onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+              onChange={(e) => updateField('categoria', e.target.value)}
               className="input input-bordered w-full"
               placeholder="Ej: Maderas, Herramientas"
             />
@@ -101,7 +101,7 @@ export default function CategoryModal({ show, category, onClose, onSaved }) {
                 step="0.01"
                 min="0"
                 value={formData.markup}
-                onChange={(e) => setFormData({ ...formData, markup: e.target.value })}
+                onChange={(e) => updateField('markup', e.target.value)}
                 className="input input-bordered w-full"
                 placeholder="0.00"
               />

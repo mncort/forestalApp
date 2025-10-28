@@ -191,3 +191,57 @@ export const validadoresProducto = {
   sku: (value) => validarSKU(value),
   costo: (value) => validarNumeroPositivo(value, false)
 };
+
+/**
+ * Mensajes de error estandarizados para validaciones
+ */
+export const mensajesError = {
+  // Campos requeridos
+  requerido: (campo) => `${campo} es requerido`,
+  textoRequerido: (campo, minLength = 2) =>
+    `Por favor ingresá ${campo} (mínimo ${minLength} caracteres)`,
+
+  // Formatos
+  emailInvalido: 'Formato de email inválido',
+  cuitInvalido: 'Formato de CUIT inválido. Formato esperado: 20-12345678-9',
+  telefonoInvalido: 'Formato de teléfono inválido',
+  skuInvalido: 'El SKU solo puede contener letras, números, guiones y guiones bajos',
+  fechaInvalida: 'Fecha inválida',
+
+  // Números
+  numeroInvalido: 'Debe ser un número válido',
+  numeroPositivo: (campo) => `${campo} debe ser mayor a 0`,
+  numeroNoNegativo: (campo) => `${campo} no puede ser negativo`,
+  fueraDeRango: (campo, min, max) =>
+    `${campo} debe estar entre ${min} y ${max}`,
+
+  // Específicos
+  costoMayorCero: 'El costo debe ser mayor a 0',
+  cantidadMayorCero: 'La cantidad debe ser mayor a 0',
+  markupInvalido: 'Por favor ingresá un porcentaje de ganancia válido (mayor o igual a 0)',
+
+  // Direcciones
+  direccionInvalida: 'Por favor ingresá una dirección válida (mínimo 5 caracteres)'
+};
+
+/**
+ * Función helper para validar y retornar objeto con valid y errors
+ * @param {Object} validaciones - Objeto con campo: validador
+ * @param {Object} data - Datos a validar
+ * @returns {Object} { valid: boolean, errors: Object }
+ */
+export const validarFormulario = (validaciones, data) => {
+  const errors = {};
+
+  Object.entries(validaciones).forEach(([campo, validador]) => {
+    const resultado = validador(data[campo]);
+    if (resultado !== true) {
+      errors[campo] = typeof resultado === 'string' ? resultado : 'Campo inválido';
+    }
+  });
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors
+  };
+};

@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plus, Package, X } from 'lucide-react';
 import { useProductSearch } from '../hooks/useProductSearch';
 import { useCatalog } from '@/context/CatalogContext';
-import { calcularPrecioProducto } from '@/lib/api/presupuestos';
+import { calcularPrecioProducto } from '@/lib/calculations/presupuestos';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 

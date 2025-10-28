@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Plus, Edit2, User } from 'lucide-react';
 import { getClientes, countClientes } from '@/lib/api/index';
 import { usePagination } from '@/hooks/usePagination';
+import { DataTable, TablePagination } from '@/components/tables';
 import ClienteModal from '@/components/modals/clientes/ClienteModal';
 
 export default function ClientesPage() {
@@ -10,25 +11,78 @@ export default function ClientesPage() {
   const [showClienteModal, setShowClienteModal] = useState(false);
 
   // Usar hook de paginación
+  const paginacion = usePagination(getClientes, countClientes, 10);
   const {
     datos: clientes,
     loading: loadingClientes,
-    paginaActual,
-    itemsPorPagina: clientesPorPagina,
     totalItems: totalClientes,
-    totalPaginas,
-    inicio,
-    fin,
-    hayPaginaAnterior,
-    hayPaginaSiguiente,
-    irAPagina,
-    irAPrimeraPagina,
-    irAUltimaPagina,
-    irAPaginaAnterior,
-    irAPaginaSiguiente,
-    cambiarItemsPorPagina,
     recargar: reload
-  } = usePagination(getClientes, countClientes, 10);
+  } = paginacion;
+
+  // Definir columnas de la tabla
+  const columns = [
+    {
+      key: 'Nombre',
+      header: 'Nombre',
+      render: (cliente) => (
+        <div className="flex items-center gap-2">
+          <User size={16} className="text-base-content/60" />
+          <span className="font-medium">{cliente.fields?.Nombre || '-'}</span>
+        </div>
+      )
+    },
+    {
+      key: 'CUIT',
+      header: 'CUIT',
+      render: (cliente) => (
+        <span className="font-mono text-sm">{cliente.fields?.CUIT || '-'}</span>
+      )
+    },
+    {
+      key: 'CondicionIVA',
+      header: 'Condición IVA',
+      render: (cliente) =>
+        cliente.fields?.CondicionIVA ? (
+          <span className="badge badge-outline badge-sm">
+            {cliente.fields.CondicionIVA}
+          </span>
+        ) : null
+    },
+    {
+      key: 'Email',
+      header: 'Email',
+      className: 'text-sm text-base-content/70'
+    },
+    {
+      key: 'Tel',
+      header: 'Teléfono',
+      className: 'text-sm text-base-content/70'
+    },
+    {
+      key: 'Dirección',
+      header: 'Dirección',
+      className: 'text-sm text-base-content/70 max-w-xs truncate'
+    },
+    {
+      key: 'acciones',
+      header: 'Acciones',
+      headerClassName: 'text-center',
+      render: (cliente) => (
+        <div className="flex items-center justify-center gap-1">
+          <button
+            onClick={() => {
+              setSelectedCliente(cliente);
+              setShowClienteModal(true);
+            }}
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
+            data-tip="Editar cliente"
+          >
+            <Edit2 size={18} />
+          </button>
+        </div>
+      )
+    }
+  ];
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -51,134 +105,14 @@ export default function ClientesPage() {
         </div>
 
         <div className="card bg-base-100 shadow-xl border border-base-300">
-          <div className="overflow-x-auto">
-            <table className="table table-zebra">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>CUIT</th>
-                  <th>Condición IVA</th>
-                  <th>Email</th>
-                  <th>Teléfono</th>
-                  <th>Dirección</th>
-                  <th className="text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loadingClientes ? (
-                  <tr>
-                    <td colSpan="7" className="text-center py-8">
-                      <span className="loading loading-spinner loading-md text-primary"></span>
-                    </td>
-                  </tr>
-                ) : clientes.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="text-center py-8 text-base-content/60">
-                      No hay clientes registrados
-                    </td>
-                  </tr>
-                ) : clientes.map(cliente => (
-                  <tr key={cliente.id} className="hover">
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <User size={16} className="text-base-content/60" />
-                        <span className="font-medium">{cliente.fields?.Nombre || '-'}</span>
-                      </div>
-                    </td>
-                    <td className="font-mono text-sm">{cliente.fields?.CUIT || '-'}</td>
-                    <td>
-                      {cliente.fields?.CondicionIVA && (
-                        <span className="badge badge-outline badge-sm">
-                          {cliente.fields.CondicionIVA}
-                        </span>
-                      )}
-                    </td>
-                    <td className="text-sm text-base-content/70">{cliente.fields?.Email || '-'}</td>
-                    <td className="text-sm text-base-content/70">{cliente.fields?.Tel || '-'}</td>
-                    <td className="text-sm text-base-content/70 max-w-xs truncate">
-                      {cliente.fields?.Dirección || '-'}
-                    </td>
-                    <td>
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => {
-                            setSelectedCliente(cliente);
-                            setShowClienteModal(true);
-                          }}
-                          className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-                          data-tip="Editar cliente"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={columns}
+            data={clientes}
+            loading={loadingClientes}
+            emptyMessage="No hay clientes registrados"
+          />
 
-          {/* Controles de paginación */}
-          {totalClientes > 0 && (
-            <div className="p-4 bg-base-200 border-t border-base-300">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                {/* Info y selector de cantidad */}
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-base-content/70">
-                    Mostrando {inicio + 1} - {Math.min(fin, totalClientes)} de {totalClientes}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-base-content/70">Por página:</label>
-                    <select
-                      value={clientesPorPagina}
-                      onChange={(e) => cambiarItemsPorPagina(parseInt(e.target.value))}
-                      className="select select-bordered select-sm"
-                    >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Botones de navegación */}
-                <div className="join">
-                  <button
-                    onClick={irAPrimeraPagina}
-                    disabled={!hayPaginaAnterior}
-                    className="join-item btn btn-sm"
-                  >
-                    ««
-                  </button>
-                  <button
-                    onClick={irAPaginaAnterior}
-                    disabled={!hayPaginaAnterior}
-                    className="join-item btn btn-sm"
-                  >
-                    «
-                  </button>
-                  <button className="join-item btn btn-sm no-animation">
-                    Página {paginaActual} de {totalPaginas}
-                  </button>
-                  <button
-                    onClick={irAPaginaSiguiente}
-                    disabled={!hayPaginaSiguiente}
-                    className="join-item btn btn-sm"
-                  >
-                    »
-                  </button>
-                  <button
-                    onClick={irAUltimaPagina}
-                    disabled={!hayPaginaSiguiente}
-                    className="join-item btn btn-sm"
-                  >
-                    »»
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <TablePagination {...paginacion} />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { Plus, Edit2, History, DollarSign, Package } from 'lucide-react';
 import { getCategorias, getSubcategorias, getProductos, countProductos, getCostos, getCostoActual } from '@/lib/api/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
 import { usePagination } from '@/hooks/usePagination';
+import { DataTable, TablePagination } from '@/components/tables';
 import CostModal from '@/components/modals/productos/CostModal';
 import HistoryModal from '@/components/modals/productos/HistoryModal';
 import ProductModal from '@/components/modals/productos/ProductModal';
@@ -26,30 +27,117 @@ export default function ProductosPage() {
   const costos = data.costos || [];
 
   // Usar hook de paginación para productos
+  const paginacion = usePagination(getProductos, countProductos, 10);
   const {
     datos: productos,
     loading: loadingProductos,
-    paginaActual,
-    itemsPorPagina: productosPorPagina,
     totalItems: totalProductos,
-    totalPaginas,
-    inicio,
-    fin,
-    hayPaginaAnterior,
-    hayPaginaSiguiente,
-    irAPrimeraPagina,
-    irAUltimaPagina,
-    irAPaginaAnterior,
-    irAPaginaSiguiente,
-    cambiarItemsPorPagina,
     recargar: recargarProductos
-  } = usePagination(getProductos, countProductos, 10);
+  } = paginacion;
 
   // Función reload completa
   const reload = () => {
     reloadOtros();
     recargarProductos();
   };
+
+  // Definir columnas de la tabla
+  const columns = [
+    {
+      key: 'SKU',
+      header: 'SKU',
+      render: (prod) => (
+        <span className="font-mono text-sm font-medium badge badge-outline">{prod.fields.SKU}</span>
+      )
+    },
+    {
+      key: 'Nombre',
+      header: 'Producto',
+      render: (prod) => (
+        <div className="flex items-center gap-2">
+          <Package size={16} className="text-base-content/60" />
+          <span className="font-medium">{prod.fields.Nombre}</span>
+        </div>
+      )
+    },
+    {
+      key: 'Categoria',
+      header: 'Categoría',
+      className: 'text-sm text-base-content/70',
+      render: (prod) => {
+        const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
+        const categoria = subcategoria ? categorias.find(c => c.id === subcategoria.fields.nc_1g29__Categorias_id) : null;
+        return categoria?.fields.Categoria || '-';
+      }
+    },
+    {
+      key: 'Subcategoria',
+      header: 'Subcategoría',
+      className: 'text-sm text-base-content/70',
+      render: (prod) => {
+        const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
+        return subcategoria?.fields.Subcategoria || '-';
+      }
+    },
+    {
+      key: 'Costo',
+      header: 'Costo Actual',
+      headerClassName: 'text-right',
+      className: 'text-right',
+      render: (prod) => {
+        const costoActual = getCostoActual(costos, prod.id);
+        return costoActual ? (
+          <>
+            <span className="font-semibold">
+              ${parseFloat(costoActual.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <span className="text-xs text-base-content/60 ml-1">{costoActual.fields.Moneda}</span>
+          </>
+        ) : (
+          <span className="text-sm text-base-content/50">Sin costo</span>
+        );
+      }
+    },
+    {
+      key: 'acciones',
+      header: 'Acciones',
+      headerClassName: 'text-center',
+      render: (prod) => (
+        <div className="flex items-center justify-center gap-1">
+          <button
+            onClick={() => {
+              setSelectedProduct(prod);
+              setShowCostModal(true);
+            }}
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-success"
+            data-tip="Asignar costo"
+          >
+            <DollarSign size={18} />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedProduct(prod);
+              setShowHistoryModal(true);
+            }}
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-info"
+            data-tip="Ver histórico"
+          >
+            <History size={18} />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedProduct(prod);
+              setShowProductModal(true);
+            }}
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
+            data-tip="Editar producto"
+          >
+            <Edit2 size={18} />
+          </button>
+        </div>
+      )
+    }
+  ];
 
   if (loading) {
     return (
@@ -96,159 +184,14 @@ export default function ProductosPage() {
           </div>
 
           <div className="card bg-base-100 shadow-xl border border-base-300">
-            <div className="overflow-x-auto">
-              <table className="table table-zebra">
-                <thead>
-                  <tr>
-                    <th>SKU</th>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Subcategoría</th>
-                    <th className="text-right">Costo Actual</th>
-                    <th className="text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingProductos ? (
-                    <tr>
-                      <td colSpan="6" className="text-center py-8">
-                        <span className="loading loading-spinner loading-md text-primary"></span>
-                      </td>
-                    </tr>
-                  ) : productos.map(prod => {
-                    const costoActual = getCostoActual(costos, prod.id);
-                    const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
-                    const categoria = subcategoria ? categorias.find(c => c.id === subcategoria.fields.nc_1g29__Categorias_id) : null;
+            <DataTable
+              columns={columns}
+              data={productos}
+              loading={loadingProductos}
+              emptyMessage="No hay productos registrados"
+            />
 
-                    return (
-                      <tr key={prod.id} className="hover">
-                        <td>
-                          <span className="font-mono text-sm font-medium badge badge-outline">{prod.fields.SKU}</span>
-                        </td>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <Package size={16} className="text-base-content/60" />
-                            <span className="font-medium">{prod.fields.Nombre}</span>
-                          </div>
-                        </td>
-                        <td className="text-sm text-base-content/70">
-                          {categoria?.fields.Categoria || '-'}
-                        </td>
-                        <td className="text-sm text-base-content/70">
-                          {subcategoria?.fields.Subcategoria || '-'}
-                        </td>
-                        <td className="text-right">
-                          {costoActual ? (
-                            <>
-                              <span className="font-semibold">
-                                ${parseFloat(costoActual.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
-                              <span className="text-xs text-base-content/60 ml-1">{costoActual.fields.Moneda}</span>
-                            </>
-                          ) : (
-                            <span className="text-sm text-base-content/50">Sin costo</span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => {
-                                setSelectedProduct(prod);
-                                setShowCostModal(true);
-                              }}
-                              className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-success"
-                              data-tip="Asignar costo"
-                            >
-                              <DollarSign size={18} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedProduct(prod);
-                                setShowHistoryModal(true);
-                              }}
-                              className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-info"
-                              data-tip="Ver histórico"
-                            >
-                              <History size={18} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedProduct(prod);
-                                setShowProductModal(true);
-                              }}
-                              className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-                              data-tip="Editar producto"
-                            >
-                              <Edit2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Controles de paginación */}
-            <div className="p-4 bg-base-200 border-t border-base-300">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                {/* Info y selector de cantidad */}
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-base-content/70">
-                    Mostrando {inicio + 1} - {Math.min(fin, totalProductos)} de {totalProductos}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-base-content/70">Por página:</label>
-                    <select
-                      value={productosPorPagina}
-                      onChange={(e) => cambiarItemsPorPagina(parseInt(e.target.value))}
-                      className="select select-bordered select-sm"
-                    >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Botones de navegación */}
-                <div className="join">
-                  <button
-                    onClick={irAPrimeraPagina}
-                    disabled={!hayPaginaAnterior}
-                    className="join-item btn btn-sm"
-                  >
-                    ««
-                  </button>
-                  <button
-                    onClick={irAPaginaAnterior}
-                    disabled={!hayPaginaAnterior}
-                    className="join-item btn btn-sm"
-                  >
-                    «
-                  </button>
-                  <button className="join-item btn btn-sm no-animation">
-                    Página {paginaActual} de {totalPaginas}
-                  </button>
-                  <button
-                    onClick={irAPaginaSiguiente}
-                    disabled={!hayPaginaSiguiente}
-                    className="join-item btn btn-sm"
-                  >
-                    »
-                  </button>
-                  <button
-                    onClick={irAUltimaPagina}
-                    disabled={!hayPaginaSiguiente}
-                    className="join-item btn btn-sm"
-                  >
-                    »»
-                  </button>
-                </div>
-              </div>
-            </div>
+            <TablePagination {...paginacion} />
           </div>
         </div>
 

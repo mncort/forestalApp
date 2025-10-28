@@ -1,90 +1,67 @@
 'use client'
-import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
-import { crearCliente, actualizarCliente, validarCUIT, validarEmail } from '@/lib/api/index';
+import React from 'react';
+import { useFormModal } from '@/hooks/useFormModal';
+import { crearCliente, actualizarCliente } from '@/lib/api/index';
+import { validarTextoRequerido, validarCUIT, validarEmail, mensajesError } from '@/lib/utils/validation';
 import { X } from 'lucide-react';
 
 export default function ClienteModal({ show, cliente, onClose, onSaved }) {
-  const [formData, setFormData] = useState({
-    Nombre: '',
-    CUIT: '',
-    CondicionIVA: '',
-    Email: '',
-    Tel: '',
-    Dirección: ''
-  });
-  const [saving, setSaving] = useState(false);
+  const {
+    formData,
+    updateField,
+    handleSave,
+    saving,
+    isEditMode
+  } = useFormModal({
+    entity: cliente,
+    initialFormData: {
+      Nombre: '',
+      CUIT: '',
+      CondicionIVA: '',
+      Email: '',
+      Tel: '',
+      Dirección: ''
+    },
+    validate: (data) => {
+      const errors = {};
 
-  useEffect(() => {
-    if (cliente) {
-      setFormData({
-        Nombre: cliente.fields?.Nombre || '',
-        CUIT: cliente.fields?.CUIT || '',
-        CondicionIVA: cliente.fields?.CondicionIVA || '',
-        Email: cliente.fields?.Email || '',
-        Tel: cliente.fields?.Tel || '',
-        Dirección: cliente.fields?.Dirección || ''
-      });
-    } else {
-      setFormData({
-        Nombre: '',
-        CUIT: '',
-        CondicionIVA: '',
-        Email: '',
-        Tel: '',
-        Dirección: ''
-      });
-    }
-  }, [cliente]);
-
-  if (!show) return null;
-
-  const isEditMode = !!cliente;
-
-  const handleSave = async () => {
-    // Validaciones
-    if (!formData.Nombre.trim()) {
-      toast.error('El nombre es requerido');
-      return;
-    }
-
-    if (formData.CUIT && !validarCUIT(formData.CUIT)) {
-      toast.error('Formato de CUIT inválido. Formato esperado: 20-12345678-9');
-      return;
-    }
-
-    if (formData.Email && !validarEmail(formData.Email)) {
-      toast.error('Formato de email inválido');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (isEditMode) {
-        await actualizarCliente(cliente.id, formData);
-        toast.success('Cliente actualizado exitosamente');
-      } else {
-        await crearCliente(formData);
-        toast.success('Cliente creado exitosamente');
+      // Usar validaciones centralizadas
+      if (!validarTextoRequerido(data.Nombre)) {
+        errors.Nombre = mensajesError.requerido('El nombre');
       }
 
+      if (data.CUIT && !validarCUIT(data.CUIT, false)) {
+        errors.CUIT = mensajesError.cuitInvalido;
+      }
+
+      if (data.Email && !validarEmail(data.Email, false)) {
+        errors.Email = mensajesError.emailInvalido;
+      }
+
+      return {
+        valid: Object.keys(errors).length === 0,
+        errors
+      };
+    },
+    onSave: async (data, isEdit, id) => {
+      if (isEdit) {
+        await actualizarCliente(id, data);
+      } else {
+        await crearCliente(data);
+      }
+    },
+    onSuccess: async () => {
       await onSaved();
       onClose();
-      setFormData({
-        Nombre: '',
-        CUIT: '',
-        CondicionIVA: '',
-        Email: '',
-        Tel: '',
-        Dirección: ''
-      });
-    } catch (err) {
-      console.error('Error:', err);
-      toast.error(err.message || 'Error al guardar el cliente');
-    } finally {
-      setSaving(false);
+    },
+    messages: {
+      created: 'Cliente creado exitosamente',
+      updated: 'Cliente actualizado exitosamente',
+      error: 'Error al guardar el cliente'
     }
-  };
+  });
+
+  if (!show) return null;
 
   return (
     <div className="modal modal-open">
@@ -115,7 +92,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
             <input
               type="text"
               value={formData.Nombre}
-              onChange={(e) => setFormData({ ...formData, Nombre: e.target.value })}
+              onChange={(e) => updateField('Nombre', e.target.value)}
               className="input input-bordered w-full"
               placeholder="Nombre del cliente"
               disabled={saving}
@@ -130,7 +107,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
             <input
               type="text"
               value={formData.CUIT}
-              onChange={(e) => setFormData({ ...formData, CUIT: e.target.value })}
+              onChange={(e) => updateField('CUIT', e.target.value)}
               className="input input-bordered w-full"
               placeholder="20-12345678-9"
               disabled={saving}
@@ -147,7 +124,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
             </label>
             <select
               value={formData.CondicionIVA}
-              onChange={(e) => setFormData({ ...formData, CondicionIVA: e.target.value })}
+              onChange={(e) => updateField('CondicionIVA', e.target.value)}
               className="select select-bordered w-full"
               disabled={saving}
             >
@@ -167,7 +144,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
             <input
               type="email"
               value={formData.Email}
-              onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
+              onChange={(e) => updateField('Email', e.target.value)}
               className="input input-bordered w-full"
               placeholder="cliente@ejemplo.com"
               disabled={saving}
@@ -182,7 +159,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
             <input
               type="tel"
               value={formData.Tel}
-              onChange={(e) => setFormData({ ...formData, Tel: e.target.value })}
+              onChange={(e) => updateField('Tel', e.target.value)}
               className="input input-bordered w-full"
               placeholder="+54911234567"
               disabled={saving}
@@ -196,7 +173,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
             </label>
             <textarea
               value={formData.Dirección}
-              onChange={(e) => setFormData({ ...formData, Dirección: e.target.value })}
+              onChange={(e) => updateField('Dirección', e.target.value)}
               className="textarea textarea-bordered w-full"
               placeholder="Dirección completa"
               rows="2"

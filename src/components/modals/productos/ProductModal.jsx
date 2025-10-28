@@ -1,36 +1,88 @@
 'use client'
 import React, { useState, useEffect, useMemo } from 'react';
-import toast from 'react-hot-toast';
+import { useFormModal } from '@/hooks/useFormModal';
 import { createRecord, updateRecord } from '@/lib/api/base';
 import { TABLES } from '@/lib/nocodb-config';
+import { validarTextoRequerido, validarSKU, mensajesError } from '@/lib/utils/validation';
 
 export default function ProductModal({ show, product, categorias, subcategorias, onClose, onSaved }) {
-  const [formData, setFormData] = useState({
-    nombre: '',
-    sku: '',
-    subcategoriaId: ''
-  });
-  const [saving, setSaving] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState('');
 
+  // Transformar datos de la entidad para el hook
+  const transformedEntity = product ? {
+    fields: {
+      nombre: product.fields?.Nombre || '',
+      sku: product.fields?.SKU || '',
+      subcategoriaId: product.fields?.Subcategoria?.id || ''
+    }
+  } : null;
+
+  const {
+    formData,
+    updateField,
+    handleSave,
+    saving,
+    isEditMode
+  } = useFormModal({
+    entity: transformedEntity,
+    initialFormData: {
+      nombre: '',
+      sku: '',
+      subcategoriaId: ''
+    },
+    validate: (data) => {
+      const errors = {};
+
+      // Usar validaciones centralizadas
+      if (!validarTextoRequerido(data.nombre)) {
+        errors.nombre = mensajesError.textoRequerido('el nombre del producto');
+      }
+
+      if (!validarSKU(data.sku)) {
+        errors.sku = data.sku?.trim() ? mensajesError.skuInvalido : 'Por favor ingresá el SKU';
+      }
+
+      if (!data.subcategoriaId) {
+        errors.subcategoriaId = 'Por favor seleccioná una subcategoría';
+      }
+
+      return {
+        valid: Object.keys(errors).length === 0,
+        errors
+      };
+    },
+    transformData: (data) => ({
+      Nombre: data.nombre.trim(),
+      SKU: data.sku.trim(),
+      nc_1g29__Subcategorias_id: data.subcategoriaId
+    }),
+    onSave: async (data, isEdit, id) => {
+      if (isEdit) {
+        await updateRecord(TABLES.productos, id, data);
+      } else {
+        await createRecord(TABLES.productos, data);
+      }
+    },
+    onSuccess: async () => {
+      await onSaved();
+      onClose();
+      setSelectedCategoria('');
+    },
+    messages: {
+      created: 'Producto creado exitosamente',
+      updated: 'Producto actualizado exitosamente',
+      error: 'Error al guardar el producto'
+    }
+  });
+
+  // Sincronizar categoría seleccionada al cambiar producto
   useEffect(() => {
     if (product) {
       const subcategoriaId = product.fields.Subcategoria?.id || '';
       const subcategoria = subcategorias.find(s => s.id === subcategoriaId);
       const categoriaId = subcategoria?.fields.nc_1g29__Categorias_id || '';
-
-      setFormData({
-        nombre: product.fields.Nombre || '',
-        sku: product.fields.SKU || '',
-        subcategoriaId: subcategoriaId
-      });
       setSelectedCategoria(categoriaId);
     } else {
-      setFormData({
-        nombre: '',
-        sku: '',
-        subcategoriaId: ''
-      });
       setSelectedCategoria('');
     }
   }, [product, subcategorias]);
@@ -42,56 +94,10 @@ export default function ProductModal({ show, product, categorias, subcategorias,
 
   const handleCategoriaChange = (newCategoriaId) => {
     setSelectedCategoria(newCategoriaId);
-    setFormData(prev => ({ ...prev, subcategoriaId: '' }));
+    updateField('subcategoriaId', '');
   };
 
   if (!show) return null;
-
-  const isEditMode = !!product;
-
-  const handleSave = async () => {
-    if (!formData.nombre.trim()) {
-      toast.error('Por favor ingresá el nombre del producto');
-      return;
-    }
-
-    if (!formData.sku.trim()) {
-      toast.error('Por favor ingresá el SKU');
-      return;
-    }
-
-    if (!formData.subcategoriaId) {
-      toast.error('Por favor seleccioná una subcategoría');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const recordData = {
-        Nombre: formData.nombre.trim(),
-        SKU: formData.sku.trim(),
-        nc_1g29__Subcategorias_id: formData.subcategoriaId
-      };
-
-      if (isEditMode) {
-        await updateRecord(TABLES.productos, product.id, recordData);
-        toast.success('Producto actualizado exitosamente');
-      } else {
-        await createRecord(TABLES.productos, recordData);
-        toast.success('Producto creado exitosamente');
-      }
-
-      await onSaved();
-      onClose();
-      setFormData({ nombre: '', sku: '', subcategoriaId: '' });
-      setSelectedCategoria('');
-    } catch (err) {
-      console.error('Error:', err);
-      toast.error(err.message || 'Error al guardar el producto');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <div className="modal modal-open">
@@ -111,7 +117,7 @@ export default function ProductModal({ show, product, categorias, subcategorias,
             <input
               type="text"
               value={formData.nombre}
-              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+              onChange={(e) => updateField('nombre', e.target.value)}
               className="input input-bordered w-full"
               placeholder="Ej: Tabla de Pino 2x4"
             />
@@ -124,7 +130,7 @@ export default function ProductModal({ show, product, categorias, subcategorias,
             <input
               type="text"
               value={formData.sku}
-              onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
+              onChange={(e) => updateField('sku', e.target.value.toUpperCase())}
               className="input input-bordered w-full font-mono"
               placeholder="Ej: PINO-2X4"
             />
@@ -156,7 +162,7 @@ export default function ProductModal({ show, product, categorias, subcategorias,
             </label>
             <select
               value={formData.subcategoriaId}
-              onChange={(e) => setFormData({ ...formData, subcategoriaId: e.target.value })}
+              onChange={(e) => updateField('subcategoriaId', e.target.value)}
               className="select select-bordered w-full"
               disabled={!selectedCategoria}
             >

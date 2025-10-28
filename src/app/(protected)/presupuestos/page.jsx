@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, FileText, Eye, Calendar } from 'lucide-react';
 import { getPresupuestos, countPresupuestos, eliminarPresupuesto } from '@/lib/api/index';
 import { usePagination } from '@/hooks/usePagination';
+import { DataTable, TablePagination } from '@/components/tables';
 import PresupuestoModal from '@/components/modals/presupuestos/PresupuestoModal';
 import PresupuestoItemsModal from '@/components/modals/presupuestos/PresupuestoItemsModal';
 
@@ -12,25 +13,13 @@ export default function PresupuestosPage() {
   const [showItemsModal, setShowItemsModal] = useState(false);
 
   // Usar hook de paginación
+  const paginacion = usePagination(getPresupuestos, countPresupuestos, 10);
   const {
     datos: presupuestos,
     loading,
     error,
-    paginaActual,
-    itemsPorPagina,
-    totalItems: totalPresupuestos,
-    totalPaginas,
-    inicio,
-    fin,
-    hayPaginaAnterior,
-    hayPaginaSiguiente,
-    irAPrimeraPagina,
-    irAUltimaPagina,
-    irAPaginaAnterior,
-    irAPaginaSiguiente,
-    cambiarItemsPorPagina,
     recargar: reload
-  } = usePagination(getPresupuestos, countPresupuestos, 10);
+  } = paginacion;
 
   // Actualizar selectedPresupuesto cuando presupuestos cambie (después de reload)
   React.useEffect(() => {
@@ -40,7 +29,7 @@ export default function PresupuestosPage() {
         setSelectedPresupuesto(updated);
       }
     }
-  }, [presupuestos]);
+  }, [presupuestos, selectedPresupuesto]);
 
   const handleEliminar = async (presupuesto) => {
     const presupuestoId = String(presupuesto.id).substring(0, 8);
@@ -67,6 +56,122 @@ export default function PresupuestosPage() {
       day: '2-digit'
     });
   };
+
+  // Definir columnas de la tabla
+  const columns = [
+    {
+      key: 'id',
+      header: 'ID',
+      render: (presupuesto) => (
+        <div className="flex items-center gap-2">
+          <FileText size={16} className="text-primary" />
+          <span className="font-mono text-sm">
+            #{String(presupuesto.id).substring(0, 8)}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'Cliente',
+      header: 'Cliente',
+      render: (presupuesto) => (
+        <div>
+          <div className="font-medium">
+            {presupuesto.fields.ClienteCompleto?.Nombre || 'Sin cliente'}
+          </div>
+          {presupuesto.fields.ClienteCompleto?.CUIT && (
+            <div className="text-xs text-base-content/60">
+              CUIT: {presupuesto.fields.ClienteCompleto.CUIT}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'Descripcion',
+      header: 'Descripción',
+      render: (presupuesto) => (
+        <div className="max-w-xs truncate">
+          {presupuesto.fields.Descripcion || '-'}
+        </div>
+      )
+    },
+    {
+      key: 'Estado',
+      header: 'Estado',
+      headerClassName: 'text-center',
+      className: 'text-center',
+      render: (presupuesto) => (
+        <span className="badge badge-outline badge-sm">
+          {presupuesto.fields.Estado || 'Borrador'}
+        </span>
+      )
+    },
+    {
+      key: 'TipoPago',
+      header: 'Tipo de Pago',
+      headerClassName: 'text-center',
+      className: 'text-center',
+      render: (presupuesto) =>
+        presupuesto.fields.efectivo ? (
+          <span className="badge badge-success badge-sm gap-1">
+            Efectivo (10.5%)
+          </span>
+        ) : (
+          <span className="badge badge-info badge-sm gap-1">
+            Tarjeta (21%)
+          </span>
+        )
+    },
+    {
+      key: 'Fecha',
+      header: 'Fecha',
+      headerClassName: 'text-center',
+      className: 'text-center',
+      render: (presupuesto) => (
+        <div className="flex items-center justify-center gap-1 text-sm">
+          <Calendar size={14} className="text-base-content/60" />
+          {formatearFecha(presupuesto.fields.CreatedAt)}
+        </div>
+      )
+    },
+    {
+      key: 'acciones',
+      header: 'Acciones',
+      headerClassName: 'text-center w-32',
+      render: (presupuesto) => (
+        <div className="flex justify-center gap-1">
+          <button
+            onClick={() => {
+              setSelectedPresupuesto(presupuesto);
+              setShowItemsModal(true);
+            }}
+            className="btn btn-ghost btn-sm btn-square tooltip"
+            data-tip="Ver items"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedPresupuesto(presupuesto);
+              setShowPresupuestoModal(true);
+            }}
+            className="btn btn-ghost btn-sm btn-square tooltip"
+            data-tip="Editar"
+          >
+            <Edit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleEliminar(presupuesto)}
+            className="btn btn-ghost btn-sm btn-square tooltip text-error"
+            data-tip="Eliminar"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )
+    }
+  ];
 
   if (loading) {
     return (
@@ -117,171 +222,14 @@ export default function PresupuestosPage() {
         </div>
 
         <div className="card bg-base-100 shadow-xl border border-base-300">
-          <div className="card-body p-0">
-            {!presupuestos || presupuestos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <FileText size={48} className="text-base-content/30 mb-4" />
-                <p className="text-base-content/70">
-                  No hay presupuestos registrados. Crea uno para comenzar.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <table className="table table-zebra">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Cliente</th>
-                      <th>Descripción</th>
-                      <th className="text-center">Estado</th>
-                      <th className="text-center">Tipo de Pago</th>
-                      <th className="text-center">Fecha</th>
-                      <th className="text-center w-32">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {presupuestos?.map((presupuesto) => (
-                      <tr key={presupuesto.id} className="hover">
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-primary" />
-                            <span className="font-mono text-sm">
-                              #{String(presupuesto.id).substring(0, 8)}
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="font-medium">
-                            {presupuesto.fields.ClienteCompleto?.Nombre || 'Sin cliente'}
-                          </div>
-                          {presupuesto.fields.ClienteCompleto?.CUIT && (
-                            <div className="text-xs text-base-content/60">
-                              CUIT: {presupuesto.fields.ClienteCompleto.CUIT}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <div className="max-w-xs truncate">
-                            {presupuesto.fields.Descripcion || '-'}
-                          </div>
-                        </td>
-                        <td className="text-center">
-                          <span className="badge badge-outline badge-sm">
-                            {presupuesto.fields.Estado || 'Borrador'}
-                          </span>
-                        </td>
-                        <td className="text-center">
-                          {presupuesto.fields.efectivo ? (
-                            <span className="badge badge-success badge-sm gap-1">
-                              Efectivo (10.5%)
-                            </span>
-                          ) : (
-                            <span className="badge badge-info badge-sm gap-1">
-                              Tarjeta (21%)
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-center">
-                          <div className="flex items-center justify-center gap-1 text-sm">
-                            <Calendar size={14} className="text-base-content/60" />
-                            {formatearFecha(presupuesto.fields.CreatedAt)}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="flex justify-center gap-1">
-                            <button
-                              onClick={() => {
-                                setSelectedPresupuesto(presupuesto);
-                                setShowItemsModal(true);
-                              }}
-                              className="btn btn-ghost btn-sm btn-square tooltip"
-                              data-tip="Ver items"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedPresupuesto(presupuesto);
-                                setShowPresupuestoModal(true);
-                              }}
-                              className="btn btn-ghost btn-sm btn-square tooltip"
-                              data-tip="Editar"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleEliminar(presupuesto)}
-                              className="btn btn-ghost btn-sm btn-square tooltip text-error"
-                              data-tip="Eliminar"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <DataTable
+            columns={columns}
+            data={presupuestos || []}
+            loading={false}
+            emptyMessage="No hay presupuestos registrados. Crea uno para comenzar."
+          />
 
-            {/* Controles de paginación */}
-            <div className="p-4 bg-base-200 border-t border-base-300">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                {/* Info y selector de cantidad */}
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-base-content/70">
-                    Mostrando {inicio} - {fin} de {totalPresupuestos} presupuestos
-                  </span>
-                  <select
-                    value={itemsPorPagina}
-                    onChange={(e) => cambiarItemsPorPagina(Number(e.target.value))}
-                    className="select select-bordered select-sm"
-                  >
-                    <option value={5}>5 por página</option>
-                    <option value={10}>10 por página</option>
-                    <option value={20}>20 por página</option>
-                    <option value={50}>50 por página</option>
-                  </select>
-                </div>
-
-                {/* Botones de navegación */}
-                <div className="join">
-                  <button
-                    onClick={irAPrimeraPagina}
-                    disabled={!hayPaginaAnterior}
-                    className="join-item btn btn-sm"
-                  >
-                    ««
-                  </button>
-                  <button
-                    onClick={irAPaginaAnterior}
-                    disabled={!hayPaginaAnterior}
-                    className="join-item btn btn-sm"
-                  >
-                    «
-                  </button>
-                  <button className="join-item btn btn-sm no-animation">
-                    Página {paginaActual} de {totalPaginas}
-                  </button>
-                  <button
-                    onClick={irAPaginaSiguiente}
-                    disabled={!hayPaginaSiguiente}
-                    className="join-item btn btn-sm"
-                  >
-                    »
-                  </button>
-                  <button
-                    onClick={irAUltimaPagina}
-                    disabled={!hayPaginaSiguiente}
-                    className="join-item btn btn-sm"
-                  >
-                    »»
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TablePagination {...paginacion} opcionesItemsPorPagina={[5, 10, 20, 50]} />
         </div>
       </div>
 
