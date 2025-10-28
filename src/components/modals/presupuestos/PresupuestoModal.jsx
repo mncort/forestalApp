@@ -5,10 +5,11 @@ import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/lib/api/
 import toast from 'react-hot-toast';
 
 export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }) {
+  const [selectedClienteId, setSelectedClienteId] = useState('');
   const [formData, setFormData] = useState({
-    Cliente: '',
     Descripcion: '',
-    Estado: 'Borrador'
+    Estado: 'Borrador',
+    efectivo: false
   });
   const [saving, setSaving] = useState(false);
   const [clientes, setClientes] = useState([]);
@@ -32,35 +33,58 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
       cargarClientes();
 
       if (presupuesto) {
-        // Modo edición
+        // Modo edición - obtener el ID del cliente desde la relación
+        const clienteId = presupuesto.fields.nc_1g29__Clientes_id || '';
+        setSelectedClienteId(clienteId);
         setFormData({
-          Cliente: presupuesto.fields.Cliente || '',
           Descripcion: presupuesto.fields.Descripcion || '',
-          Estado: presupuesto.fields.Estado || 'Borrador'
+          Estado: presupuesto.fields.Estado || 'Borrador',
+          // NocoDB devuelve checkbox como número (0/1), convertir a booleano
+          efectivo: presupuesto.fields.efectivo !== undefined
+            ? Boolean(presupuesto.fields.efectivo)
+            : false
         });
       } else {
         // Modo creación
+        setSelectedClienteId('');
         setFormData({
-          Cliente: '',
           Descripcion: '',
-          Estado: 'Borrador'
+          Estado: 'Borrador',
+          efectivo: false
         });
       }
     }
   }, [show, presupuesto]);
 
+  const handleClienteChange = (e) => {
+    const clienteId = e.target.value;
+    setSelectedClienteId(clienteId);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!selectedClienteId) {
+      toast.error('Debes seleccionar un cliente');
+      return;
+    }
+
     setSaving(true);
 
     try {
+      // Preparar datos para enviar
+      const dataToSend = {
+        ...formData,
+        nc_1g29__Clientes_id: selectedClienteId
+      };
+
       if (presupuesto) {
         // Actualizar
-        await actualizarPresupuesto(presupuesto.id, formData);
+        await actualizarPresupuesto(presupuesto.id, dataToSend);
         toast.success('Presupuesto actualizado correctamente');
       } else {
         // Crear
-        await crearPresupuesto(formData);
+        await crearPresupuesto(dataToSend);
         toast.success('Presupuesto creado correctamente');
       }
       onSaved();
@@ -103,15 +127,15 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
               </div>
             ) : (
               <select
-                value={formData.Cliente}
-                onChange={(e) => setFormData({ ...formData, Cliente: e.target.value })}
+                value={selectedClienteId}
+                onChange={handleClienteChange}
                 className="select select-bordered"
                 required
                 disabled={saving}
               >
                 <option value="">Seleccionar cliente</option>
                 {clientes.map((cliente) => (
-                  <option key={cliente.id} value={cliente.fields.Nombre}>
+                  <option key={cliente.id} value={cliente.id}>
                     {cliente.fields.Nombre}
                     {cliente.fields.CUIT && ` - ${cliente.fields.CUIT}`}
                   </option>
@@ -156,6 +180,26 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
               <option value="Aprobado">Aprobado</option>
               <option value="Rechazado">Rechazado</option>
             </select>
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Tipo de Pago</span>
+            </label>
+            <select
+              value={formData.efectivo.toString()}
+              onChange={(e) => setFormData({ ...formData, efectivo: e.target.value === 'true' })}
+              className="select select-bordered"
+              disabled={saving}
+            >
+              <option value="false">Tarjeta/Transferencia (IVA 21%)</option>
+              <option value="true">Efectivo (IVA 10.5%)</option>
+            </select>
+            <label className="label">
+              <span className="label-text-alt">
+                {formData.efectivo ? 'Medio IVA aplicado (10.5%)' : 'IVA completo aplicado (21%)'}
+              </span>
+            </label>
           </div>
 
           <div className="modal-action">

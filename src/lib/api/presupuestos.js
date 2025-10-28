@@ -1,14 +1,51 @@
-import { fetchRecords, createRecord, updateRecord, deleteRecord } from './base';
+import { fetchRecords, createRecord, updateRecord, deleteRecord, countRecords } from './base';
 import { TABLES } from '../nocodb-config';
 import { getCostoActual } from './costos';
 
 /**
- * Obtiene todos los presupuestos
+ * Cuenta el número total de presupuestos
+ * @returns {Promise<number>} Número total de presupuestos
+ */
+export const countPresupuestos = async () => {
+  return countRecords(TABLES.presupuestos);
+};
+
+/**
+ * Obtiene todos los presupuestos con información del cliente
  * @param {Object} options - Opciones de paginación y filtrado
  * @returns {Promise<Array>} Array de presupuestos
  */
 export const getPresupuestos = async (options = {}) => {
-  return fetchRecords(TABLES.presupuestos, options);
+  const presupuestos = await fetchRecords(TABLES.presupuestos, options);
+
+  // Enriquecer cada presupuesto con los datos completos del cliente
+  const presupuestosEnriquecidos = await Promise.all(
+    presupuestos.map(async (presupuesto) => {
+      // Si tiene un cliente asignado, obtener sus datos completos
+      const clienteId = presupuesto.fields.nc_1g29__Clientes_id;
+
+      if (clienteId) {
+        try {
+          // Fetch del cliente completo
+          const clientes = await fetchRecords(TABLES.clientes, {
+            where: `(Id,eq,${clienteId})`,
+            limit: 1
+          });
+
+          if (clientes.length > 0) {
+            // Agregar los datos completos del cliente al presupuesto
+            presupuesto.fields.ClienteCompleto = clientes[0].fields;
+          }
+        } catch (error) {
+          console.error('Error obteniendo datos del cliente:', error);
+        }
+      }
+
+      return presupuesto;
+    })
+  );
+
+  return presupuestosEnriquecidos;
 };
 
 /**

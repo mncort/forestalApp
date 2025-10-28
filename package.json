@@ -5,7 +5,7 @@
   "type": "module",
   "browserslist": "> 1%",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev -H 0.0.0.0 --turbo",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",

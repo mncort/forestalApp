@@ -12,7 +12,7 @@ export const money = (value, moneda = 'ARS') => {
  * Prepara los datos del presupuesto para el PDF
  * Calcula totales y formatea los valores
  */
-export function prepararDatosPresupuesto(presupuesto, itemsConPrecios, tipoFactura) {
+export function prepararDatosPresupuesto(presupuesto, itemsConPrecios, efectivo) {
   // Preparar datos básicos
   const presupuestoId = String(presupuesto?.id || '').substring(0, 8);
   const fecha = new Date().toLocaleDateString('es-AR', {
@@ -40,20 +40,22 @@ export function prepararDatosPresupuesto(presupuesto, itemsConPrecios, tipoFactu
 
   // Calcular totales
   const subtotal = items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
-  const porcentajeImpuesto = tipoFactura === 'con_factura' ? 21 : 10.5;
+  // Si efectivo = true → 10.5% IVA (medio IVA)
+  // Si efectivo = false → 21% IVA (IVA completo)
+  const porcentajeImpuesto = efectivo ? 10.5 : 21;
   const impuestos = subtotal * (porcentajeImpuesto / 100);
   const total = subtotal + impuestos;
 
-  // Formatear texto de tipo de factura
-  const tipoFacturaTexto = tipoFactura === 'con_factura'
-    ? `Con Factura (${porcentajeImpuesto}% IVA)`
-    : `Sin Factura (${porcentajeImpuesto}% IVA)`;
+  // Formatear texto de tipo de pago
+  const tipoPagoTexto = efectivo
+    ? `Efectivo - Medio IVA (${porcentajeImpuesto}%)`
+    : `Tarjeta/Transferencia - IVA Completo (${porcentajeImpuesto}%)`;
 
   return {
     presupuestoId,
     fecha,
-    cliente: presupuesto?.fields.Cliente,
-    tipoFactura: tipoFacturaTexto,
+    cliente: presupuesto?.fields?.ClienteCompleto?.Nombre || 'Sin cliente',
+    tipoFactura: tipoPagoTexto,
     items,
     totales: {
       subtotal,

@@ -36,6 +36,7 @@ export {
 // Presupuestos
 export {
   getPresupuestos,
+  countPresupuestos,
   getPresupuestoById,
   crearPresupuesto,
   actualizarPresupuesto,
