@@ -70,8 +70,8 @@ export const fetchRecords = async (tableId, options = {}) => {
     const records = data.records || data.list || [];
 
     // NocoDB v3 incluye el count en la respuesta
-    if (returnMeta && data.pageInfo) {
-      const count = data.pageInfo.totalRows || records.length;
+    if (returnMeta) {
+      const count = data.pageInfo?.totalRows || data.pageInfo?.total || data.count || records.length;
       return {
         records,
         count
@@ -206,7 +206,7 @@ export const deleteRecord = async (tableId, recordId) => {
 
 /**
  * Función para contar registros en una tabla
- * Usa fetchRecords con limit=1 para obtener el count de pageInfo
+ * Usa la API v3 count endpoint
  * @param {string} tableId - ID de la tabla en NocoDB
  * @param {Object} options - Opciones de filtrado
  * @param {string} options.where - Filtro WHERE en formato NocoDB
@@ -214,15 +214,30 @@ export const deleteRecord = async (tableId, recordId) => {
  */
 export const countRecords = async (tableId, options = {}) => {
   try {
-    // Usar fetchRecords con limit=1 y returnMeta=true para obtener solo el count
-    const { count } = await fetchRecords(tableId, {
-      ...options,
-      limit: 1,
-      offset: 0,
-      returnMeta: true
-    });
+    const { where = null } = options;
 
-    return count || 0;
+    // Construir query params
+    const params = new URLSearchParams();
+    if (where) params.append('where', where);
+
+    // Usar el endpoint count de API v3
+    const url = `${NOCODB_URL}/api/v3/data/${BASE_ID}/${tableId}/count?${params}`;
+
+    const response = await fetch(url, { headers: HEADERS });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new ApiError(
+        errorData.message || `Error al contar registros: ${response.statusText}`,
+        response.status,
+        errorData
+      );
+    }
+
+    const data = await response.json();
+
+    // La API v3 devuelve { count: number }
+    return data.count || 0;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;

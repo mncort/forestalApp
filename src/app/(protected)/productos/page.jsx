@@ -130,7 +130,7 @@ export default function ProductosPage() {
               setShowProductModal(true);
             }}
             className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-            data-tip="Editar producto"
+            data-tip="Editar"
           >
             <Edit2 size={18} />
           </button>

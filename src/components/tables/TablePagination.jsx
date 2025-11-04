@@ -36,6 +36,7 @@ export default function TablePagination({
   cambiarItemsPorPagina,
   opcionesItemsPorPagina = [10, 25, 50, 100]
 }) {
+  console.log('totalItems:', totalItems);
   if (totalItems === 0) return null;
 
   return (

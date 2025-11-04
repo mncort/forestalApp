@@ -75,7 +75,7 @@ export default function ClientesPage() {
               setShowClienteModal(true);
             }}
             className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-            data-tip="Editar cliente"
+            data-tip="Editar"
           >
             <Edit2 size={18} />
           </button>

@@ -138,35 +138,35 @@ export default function PresupuestosPage() {
     {
       key: 'acciones',
       header: 'Acciones',
-      headerClassName: 'text-center w-32',
+      headerClassName: 'text-center',
       render: (presupuesto) => (
-        <div className="flex justify-center gap-1">
+        <div className="flex items-center justify-center gap-1">
           <button
             onClick={() => {
               setSelectedPresupuesto(presupuesto);
               setShowItemsModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip"
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-info"
             data-tip="Ver items"
           >
-            <Eye size={16} />
+            <Eye size={18} />
           </button>
           <button
             onClick={() => {
               setSelectedPresupuesto(presupuesto);
               setShowPresupuestoModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip"
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
             data-tip="Editar"
           >
-            <Edit2 size={16} />
+            <Edit2 size={18} />
           </button>
           <button
             onClick={() => handleEliminar(presupuesto)}
-            className="btn btn-ghost btn-sm btn-square tooltip text-error"
+            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-error"
             data-tip="Eliminar"
           >
-            <Trash2 size={16} />
+            <Trash2 size={18} />
           </button>
         </div>
       )
@@ -229,7 +229,7 @@ export default function PresupuestosPage() {
             emptyMessage="No hay presupuestos registrados. Crea uno para comenzar."
           />
 
-          <TablePagination {...paginacion} opcionesItemsPorPagina={[5, 10, 20, 50]} />
+          <TablePagination {...paginacion} />
         </div>
       </div>
 
