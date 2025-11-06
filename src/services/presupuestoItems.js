@@ -1,5 +1,5 @@
-import { fetchRecords, createRecord, updateRecord, deleteRecord } from './base';
-import { TABLES } from '../nocodb-config';
+import { fetchRecords, createRecord, updateRecord, deleteRecord } from '@/models/nocodbRepository';
+import { TABLES } from '@/models/nocodbConfig';
 
 /**
  * API para Items de Presupuesto

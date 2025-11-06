@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { calcularPrecioProducto } from '@/lib/api/index';
+import { calcularPrecioProducto } from '@/services/index';
 import toast from 'react-hot-toast';
 
 /**

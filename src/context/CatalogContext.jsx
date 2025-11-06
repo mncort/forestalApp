@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext } from 'react';
 import { useNocoDB } from '@/hooks/useNocoDB';
-import { getCategorias, getSubcategorias, getCostos } from '@/lib/api/index';
+import { getCategorias, getSubcategorias, getCostos } from '@/services/index';
 
 /**
  * Context para datos del catálogo que no cambian frecuentemente

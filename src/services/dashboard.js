@@ -1,5 +1,5 @@
-import { fetchRecords } from './base';
-import { TABLES } from '../nocodb-config';
+import { fetchRecords } from '@/models/nocodbRepository';
+import { TABLES } from '@/models/nocodbConfig';
 
 /**
  * Obtiene el resumen semanal de presupuestos

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/lib/api/index';
+import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/services/index';
 import toast from 'react-hot-toast';
 
 export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }) {

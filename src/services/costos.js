@@ -1,5 +1,5 @@
-import { fetchRecords, createRecord } from './base';
-import { TABLES } from '../nocodb-config';
+import { fetchRecords, createRecord, updateRecord } from '@/models/nocodbRepository';
+import { TABLES } from '@/models/nocodbConfig';
 
 /**
  * Obtiene todos los costos
@@ -19,6 +19,16 @@ export const getCostosByProducto = async (productoId) => {
   // Filtrar en la API de NocoDB para traer solo los costos de este producto
   const where = `(nc_1g29__Productos_id,eq,${productoId})`;
   return fetchRecords(TABLES.costos, { where });
+};
+
+/**
+ * Obtiene costos históricos archivados desde la tabla auxiliar
+ * @param {string} productoId - ID del producto
+ * @returns {Promise<Array>} Costos históricos almacenados en la tabla histórica
+ */
+export const getCostosArchivados = async (productoId) => {
+  const where = `(nc_1g29__Productos_id,eq,${productoId})`;
+  return fetchRecords(TABLES.costosHist, { where, limit: 100 });
 };
 
 /**
@@ -138,6 +148,37 @@ export const crearCosto = async (costoData) => {
     FechaHasta: fechaHasta || null,
     nc_1g29__Productos_id: productoId
   });
+};
+
+/**
+ * Cierra el costo vigente y crea un nuevo registro para el producto
+ * @param {string} productoId - ID del producto
+ * @param {Object} costoNormalizado - Datos listos para NocoDB
+ * @returns {Promise<{costoPrevioSinCierre: Object|null}>} Información del costo previo actualizado
+ */
+export const guardarCostoParaProducto = async (productoId, costoNormalizado) => {
+  const costosProducto = await getCostosByProducto(productoId);
+
+  const costoPrevioSinCierre = costosProducto.find(
+    (costo) => !costo.fields.FechaHasta || costo.fields.FechaHasta === ''
+  );
+
+  if (costoPrevioSinCierre) {
+    const fechaDesdeNueva = costoNormalizado.FechaDesde;
+    if (fechaDesdeNueva) {
+      const [year, month, day] = fechaDesdeNueva.split('-').map(Number);
+      const fechaHastaPrevio = new Date(year, month - 1, day - 1);
+      const fechaHastaStr = fechaHastaPrevio.toISOString().split('T')[0];
+
+      await updateRecord(TABLES.costos, costoPrevioSinCierre.id, {
+        FechaHasta: fechaHastaStr
+      });
+    }
+  }
+
+  await createRecord(TABLES.costos, costoNormalizado);
+
+  return { costoPrevioSinCierre: costoPrevioSinCierre || null };
 };
 
 /**

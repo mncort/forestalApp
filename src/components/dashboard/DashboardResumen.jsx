@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import { TrendingUp, DollarSign, FileText } from 'lucide-react';
-import { getResumenSemanal } from '@/lib/api/dashboard';
+import { getResumenSemanal } from '@/services/dashboard';
 
 export default function DashboardResumen() {
   const [data, setData] = useState(null);

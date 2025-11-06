@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { getDatosGraficos } from '@/lib/api/dashboard';
+import { getDatosGraficos } from '@/services/dashboard';
 
 const COLORS = ['#570DF8', '#F000B8', '#37CDBE', '#FBBD23', '#FF5722'];
 

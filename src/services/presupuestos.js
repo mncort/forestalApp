@@ -1,5 +1,5 @@
-import { fetchRecords, createRecord, updateRecord, deleteRecord, countRecords } from './base';
-import { TABLES } from '../nocodb-config';
+import { fetchRecords, createRecord, updateRecord, deleteRecord, countRecords } from '@/models/nocodbRepository';
+import { TABLES } from '@/models/nocodbConfig';
 // Las funciones de cálculo se movieron a lib/calculations/presupuestos.js
 
 /**

@@ -3,7 +3,7 @@ import {
   actualizarPresupuestoItem,
   eliminarPresupuestoItem,
   actualizarPresupuesto
-} from '@/lib/api/index';
+} from '@/services/index';
 import toast from 'react-hot-toast';
 
 /**

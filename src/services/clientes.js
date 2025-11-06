@@ -1,6 +1,6 @@
-import { fetchRecords, createRecord, updateRecord } from './base';
-import { TABLES, NOCODB_URL, BASE_ID, HEADERS } from '../nocodb-config';
-import { validarTextoRequerido } from '../utils/validation';
+import { fetchRecords, createRecord, updateRecord } from '@/models/nocodbRepository';
+import { TABLES, NOCODB_URL, BASE_ID, HEADERS } from '@/models/nocodbConfig';
+import { validarTextoRequerido } from '@/lib/utils/validation';
 
 /**
  * Obtener todos los clientes con opciones de filtrado

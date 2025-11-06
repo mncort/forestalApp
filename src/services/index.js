@@ -1,14 +1,25 @@
 // Barrel file - Re-exporta todas las funciones de la API
 
 // Base
-export { ApiError, fetchRecords, createRecord, updateRecord, deleteRecord, countRecords } from './base';
+export {
+  ApiError,
+  fetchRecords,
+  createRecord,
+  updateRecord,
+  deleteRecord,
+  countRecords
+} from '@/models/nocodbRepository';
 
 // Categorías
 export {
   getCategorias,
   getSubcategorias,
   getSubcategoriasByCategoria,
-  getCategoriaById
+  getCategoriaById,
+  crearCategoria,
+  actualizarCategoria,
+  crearSubcategoria,
+  actualizarSubcategoria
 } from './categorias';
 
 // Productos
@@ -18,18 +29,22 @@ export {
   getProductoById,
   getProductosBySubcategoria,
   getProductosByCategoria,
-  searchProductos
+  searchProductos,
+  crearProducto,
+  actualizarProducto
 } from './productos';
 
 // Costos
 export {
   getCostos,
   getCostosByProducto,
+  getCostosArchivados,
   getCostoActual,
   getCostoActualAsync,
   getHistorialCostos,
   getHistorialCostosAsync,
   crearCosto,
+  guardarCostoParaProducto,
   calcularPrecioVenta
 } from './costos';
 
@@ -58,7 +73,7 @@ export {
   calcularPrecioProducto,
   calcularTotalPresupuesto,
   aplicarDescuentoEfectivo
-} from '../calculations/presupuestos';
+} from '@/lib/calculations/presupuestos';
 
 // Clientes
 export {
