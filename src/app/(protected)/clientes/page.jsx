@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import { Plus, Edit2, User } from 'lucide-react';
-import { getClientes, countClientes } from '@/lib/api/index';
+import { getClientes, countClientes } from '@/services/index';
 import { usePagination } from '@/hooks/usePagination';
 import { DataTable, TablePagination } from '@/components/tables';
 import ClienteModal from '@/components/modals/clientes/ClienteModal';

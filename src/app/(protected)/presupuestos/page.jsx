@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, FileText, Eye, Calendar } from 'lucide-react';
-import { getPresupuestos, countPresupuestos, eliminarPresupuesto } from '@/lib/api/index';
+import { getPresupuestos, countPresupuestos, eliminarPresupuesto } from '@/services/index';
 import { usePagination } from '@/hooks/usePagination';
 import { DataTable, TablePagination } from '@/components/tables';
 import PresupuestoModal from '@/components/modals/presupuestos/PresupuestoModal';

@@ -1,7 +1,7 @@
 'use client'
 import React from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
-import { crearCliente, actualizarCliente } from '@/lib/api/index';
+import { crearCliente, actualizarCliente } from '@/services/index';
 import { validarTextoRequerido, validarCUIT, validarEmail, mensajesError } from '@/lib/utils/validation';
 import { X } from 'lucide-react';
 

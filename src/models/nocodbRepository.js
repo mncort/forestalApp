@@ -1,4 +1,4 @@
-import { NOCODB_URL, HEADERS, BASE_ID } from '../nocodb-config.js';
+import { NOCODB_URL, HEADERS, BASE_ID } from '@/models/nocodbConfig';
 
 /**
  * Clase de error personalizada para errores de API

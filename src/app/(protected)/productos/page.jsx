@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import { Plus, Edit2, History, DollarSign, Package } from 'lucide-react';
-import { getCategorias, getSubcategorias, getProductos, countProductos, getCostos, getCostoActual } from '@/lib/api/index';
+import { getCategorias, getSubcategorias, getProductos, countProductos, getCostos, getCostoActual } from '@/services/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
 import { usePagination } from '@/hooks/usePagination';
 import { DataTable, TablePagination } from '@/components/tables';

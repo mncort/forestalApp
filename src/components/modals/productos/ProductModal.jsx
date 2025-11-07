@@ -1,8 +1,7 @@
 'use client'
 import React, { useState, useEffect, useMemo } from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
-import { createRecord, updateRecord } from '@/lib/api/base';
-import { TABLES } from '@/lib/nocodb-config';
+import { crearProducto, actualizarProducto } from '@/services/index';
 import { validarTextoRequerido, validarSKU, mensajesError } from '@/lib/utils/validation';
 
 export default function ProductModal({ show, product, categorias, subcategorias, onClose, onSaved }) {
@@ -58,9 +57,9 @@ export default function ProductModal({ show, product, categorias, subcategorias,
     }),
     onSave: async (data, isEdit, id) => {
       if (isEdit) {
-        await updateRecord(TABLES.productos, id, data);
+        await actualizarProducto(id, data);
       } else {
-        await createRecord(TABLES.productos, data);
+        await crearProducto(data);
       }
     },
     onSuccess: async () => {

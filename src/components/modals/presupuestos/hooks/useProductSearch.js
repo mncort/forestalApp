@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProductos, countProductos } from '@/lib/api/index';
+import { getProductos, countProductos } from '@/services/index';
 
 /**
  * Hook para manejar la búsqueda de productos con debounce

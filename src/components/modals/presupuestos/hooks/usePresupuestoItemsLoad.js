@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { getItemsByPresupuesto } from '@/lib/api/index';
+import { getItemsByPresupuesto } from '@/services/index';
 import toast from 'react-hot-toast';
 
 /**

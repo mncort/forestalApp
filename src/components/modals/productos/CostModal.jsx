@@ -1,8 +1,7 @@
 'use client'
 import React from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
-import { NOCODB_URL, HEADERS, TABLES } from '@/lib/nocodb-config';
-import { getCostosByProducto, updateRecord, createRecord } from '@/lib/api/index';
+import { guardarCostoParaProducto } from '@/services/index';
 import { validarNumeroPositivo, mensajesError } from '@/lib/utils/validation';
 
 export default function CostModal({ show, product, onClose, onSaved }) {
@@ -38,31 +37,7 @@ export default function CostModal({ show, product, onClose, onSaved }) {
       nc_1g29__Productos_id: product?.id
     }),
     onSave: async (data) => {
-      // 1. Buscar si existe un costo previo sin fecha hasta
-      const costosProducto = await getCostosByProducto(product.id);
-
-      const costoPrevioSinCierre = costosProducto.find(
-        c => !c.fields.FechaHasta || c.fields.FechaHasta === ''
-      );
-
-      // 2. Si existe un costo previo sin cerrar, actualizarlo con el día anterior al nuevo costo
-      if (costoPrevioSinCierre) {
-        // Calcular el día anterior a la fecha desde del nuevo costo
-        const [year, month, day] = data.FechaDesde.split('-').map(Number);
-        const fechaHastaPrevio = new Date(year, month - 1, day - 1);
-        const fechaHastaStr = fechaHastaPrevio.toISOString().split('T')[0];
-
-        // Actualizar el costo previo
-        await updateRecord(TABLES.costos, costoPrevioSinCierre.id, {
-          FechaHasta: fechaHastaStr
-        });
-      }
-
-      // 3. Crear el nuevo costo
-      await createRecord(TABLES.costos, data);
-
-      // Return flag to customize success message
-      return { costoPrevioSinCierre };
+      return guardarCostoParaProducto(product.id, data);
     },
     onSuccess: async (result) => {
       await onSaved();

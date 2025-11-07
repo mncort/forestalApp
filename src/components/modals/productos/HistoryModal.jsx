@@ -1,8 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
-import { getCostoActual } from '@/lib/api/index';
-import { NOCODB_URL, HEADERS, TABLES, BASE_ID } from '@/lib/nocodb-config';
+import { getCostoActual, getCostosArchivados } from '@/services/index';
 import { formatDate } from '@/lib/utils/formatting';
 
 export default function HistoryModal({ show, product, costos, onClose }) {
@@ -16,14 +15,8 @@ export default function HistoryModal({ show, product, costos, onClose }) {
     const cargarHistoricos = async () => {
       setLoading(true);
       try {
-        const where = `(nc_1g29__Productos_id,eq,${product.id})`;
-        const url = `${NOCODB_URL}/api/v3/data/${BASE_ID}/${TABLES.costosHist}/records?where=${where}&limit=100`;
-        const response = await fetch(url, { headers: HEADERS });
-
-        if (response.ok) {
-          const data = await response.json();
-          setCostosHistoricos(data.records || data.list || []);
-        }
+        const historicos = await getCostosArchivados(product.id);
+        setCostosHistoricos(historicos);
       } catch (error) {
         console.error('Error cargando históricos:', error);
       } finally {

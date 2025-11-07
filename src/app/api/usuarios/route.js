@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUsuario, getUsuarioByEmail, getUsuarioByUsername } from '@/lib/api/usuarios';
+import { createUsuario, getUsuarioByEmail, getUsuarioByUsername } from '@/services/usuarios';
 
 export async function POST(request) {
   try {

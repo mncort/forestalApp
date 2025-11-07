@@ -1,8 +1,7 @@
 'use client'
 import React from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
-import { createRecord, updateRecord } from '@/lib/api/base';
-import { TABLES } from '@/lib/nocodb-config';
+import { crearCategoria, actualizarCategoria } from '@/services/index';
 import { validarTextoRequerido, validarNumeroPositivo, mensajesError } from '@/lib/utils/validation';
 
 export default function CategoryModal({ show, category, onClose, onSaved }) {
@@ -49,9 +48,9 @@ export default function CategoryModal({ show, category, onClose, onSaved }) {
     }),
     onSave: async (data, isEdit, id) => {
       if (isEdit) {
-        await updateRecord(TABLES.categorias, id, data);
+        await actualizarCategoria(id, data);
       } else {
-        await createRecord(TABLES.categorias, data);
+        await crearCategoria(data);
       }
     },
     onSuccess: async () => {

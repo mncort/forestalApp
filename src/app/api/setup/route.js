@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUsuario, getUsuarios } from '@/lib/api/usuarios';
+import { createUsuario, getUsuarios } from '@/services/usuarios';
 
 /**
  * Ruta temporal para crear el primer usuario administrador

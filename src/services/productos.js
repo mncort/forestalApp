@@ -1,5 +1,5 @@
-import { fetchRecords } from './base';
-import { TABLES, NOCODB_URL, BASE_ID, HEADERS } from '../nocodb-config';
+import { fetchRecords, createRecord, updateRecord } from '@/models/nocodbRepository';
+import { TABLES, NOCODB_URL, BASE_ID, HEADERS } from '@/models/nocodbConfig';
 
 /**
  * Obtiene todos los productos
@@ -90,4 +90,23 @@ export const searchProductos = async (searchTerm) => {
     prod.fields.Nombre?.toLowerCase().includes(term) ||
     prod.fields.SKU?.toLowerCase().includes(term)
   );
+};
+
+/**
+ * Crea un nuevo producto en la base de datos
+ * @param {Object} productoData - Datos ya normalizados para NocoDB
+ * @returns {Promise<Object>} Producto creado
+ */
+export const crearProducto = async (productoData) => {
+  return createRecord(TABLES.productos, productoData);
+};
+
+/**
+ * Actualiza un producto existente en la base de datos
+ * @param {string} id - ID del producto
+ * @param {Object} productoData - Datos actualizados normalizados
+ * @returns {Promise<Object>} Producto actualizado
+ */
+export const actualizarProducto = async (id, productoData) => {
+  return updateRecord(TABLES.productos, id, productoData);
 };

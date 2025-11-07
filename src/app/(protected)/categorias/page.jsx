@@ -1,9 +1,9 @@
 'use client'
 import React, { useState } from 'react';
 import { Plus, Edit2, Folder, ChevronRight } from 'lucide-react';
-import { getCategorias, getSubcategorias } from '@/lib/api/index';
+import { getCategorias, getSubcategorias } from '@/services/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
-import { NOCODB_URL } from '@/lib/nocodb-config';
+import { NOCODB_URL } from '@/models/nocodbConfig';
 import CategoryModal from '@/components/modals/categorias/CategoryModal';
 import SubcategoryModal from '@/components/modals/categorias/SubcategoryModal';
 

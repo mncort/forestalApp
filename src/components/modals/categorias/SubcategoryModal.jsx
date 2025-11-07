@@ -1,8 +1,7 @@
 'use client'
 import React from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
-import { createRecord, updateRecord } from '@/lib/api/base';
-import { TABLES } from '@/lib/nocodb-config';
+import { crearSubcategoria, actualizarSubcategoria } from '@/services/index';
 import { validarTextoRequerido, mensajesError } from '@/lib/utils/validation';
 
 export default function SubcategoryModal({ show, subcategoria, categoriaId, onClose, onSaved }) {
@@ -57,9 +56,9 @@ export default function SubcategoryModal({ show, subcategoria, categoriaId, onCl
     },
     onSave: async (data, isEdit, id) => {
       if (isEdit) {
-        await updateRecord(TABLES.subcategorias, id, data);
+        await actualizarSubcategoria(id, data);
       } else {
-        await createRecord(TABLES.subcategorias, data);
+        await crearSubcategoria(data);
       }
     },
     onSuccess: async () => {

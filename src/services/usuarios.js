@@ -1,5 +1,5 @@
-import { fetchRecords, createRecord, updateRecord } from './base.js';
-import { TABLES } from '../nocodb-config.js';
+import { fetchRecords, createRecord, updateRecord } from '@/models/nocodbRepository';
+import { TABLES } from '@/models/nocodbConfig';
 import bcrypt from 'bcryptjs';
 
 /**
