@@ -1,7 +1,7 @@
 'use client'
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * Componente genérico de tabla con estados de carga y vacío
@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
  * @param {Function} props.renderRow - Función para renderizar fila completa (opcional, sobrescribe columns)
  * @param {Function} props.getRowKey - Función para obtener key de la fila (default: (item) => item.id)
  * @param {string} props.className - Clases CSS adicionales para la tabla
+ * @param {number} props.skeletonRows - Número de filas skeleton a mostrar durante carga (default: 10)
  */
 export default function DataTable({
   columns = [],
@@ -22,7 +23,8 @@ export default function DataTable({
   emptyMessage = 'No hay datos disponibles',
   renderRow,
   getRowKey = (item) => item.id,
-  className = ''
+  className = '',
+  skeletonRows = 10
 }) {
   const colSpan = columns.length;
 
@@ -42,13 +44,19 @@ export default function DataTable({
       </TableHeader>
       <TableBody>
         {loading ? (
-          <TableRow>
-            <TableCell colSpan={colSpan} className="text-center py-8">
-              <div className="flex items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            </TableCell>
-          </TableRow>
+          // Renderizar skeleton rows
+          Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+            <TableRow key={`skeleton-${rowIndex}`}>
+              {columns.map((column, colIndex) => (
+                <TableCell
+                  key={`skeleton-${rowIndex}-${column.key || colIndex}`}
+                  className={column.className || ''}
+                >
+                  <Skeleton className="h-4 w-full" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
         ) : data.length === 0 ? (
           <TableRow>
             <TableCell colSpan={colSpan} className="text-center py-8 text-muted-foreground">

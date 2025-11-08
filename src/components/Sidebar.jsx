@@ -18,7 +18,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 h-full shrink-0 bg-card border-r border-border/50 overflow-y-auto">
+    <aside className="w-64 shrink-0 bg-card border-r border-border/50 overflow-y-auto">
       <nav className="p-4 w-full space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;

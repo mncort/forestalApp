@@ -111,7 +111,7 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
           <div className="space-y-2">
             <Label htmlFor="condicion-iva">Condición IVA</Label>
             <Select
-              value={formData.CondicionIVA}
+              value={formData.CondicionIVA || undefined}
               onValueChange={(value) => updateField('CondicionIVA', value)}
               disabled={saving}
             >
@@ -119,7 +119,6 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
                 <SelectValue placeholder="Seleccionar..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Seleccionar</SelectItem>
                 <SelectItem value="Consumidor Final">Consumidor Final</SelectItem>
                 <SelectItem value="Responsable Inscripto">Responsable Inscripto</SelectItem>
                 <SelectItem value="Monotributo">Monotributo</SelectItem>
