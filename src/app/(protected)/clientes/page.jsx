@@ -90,36 +90,34 @@ export default function ClientesPage() {
   ];
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold">Clientes</h2>
-            <p className="text-muted-foreground text-sm mt-1">{totalClientes} clientes registrados</p>
-          </div>
-          <Button
-            onClick={() => {
-              setSelectedCliente(null);
-              setShowClienteModal(true);
-            }}
-            className="gap-2"
-          >
-            <Plus size={20} />
-            Nuevo Cliente
-          </Button>
+    <div className="flex flex-col gap-6 pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold">Clientes</h2>
+          <p className="text-sm text-muted-foreground">{totalClientes} clientes registrados</p>
         </div>
-
-        <Card>
-          <DataTable
-            columns={columns}
-            data={clientes}
-            loading={loadingClientes}
-            emptyMessage="No hay clientes registrados"
-          />
-
-          <TablePagination {...paginacion} />
-        </Card>
+        <Button
+          onClick={() => {
+            setSelectedCliente(null);
+            setShowClienteModal(true);
+          }}
+          className="gap-2"
+        >
+          <Plus size={20} />
+          Nuevo Cliente
+        </Button>
       </div>
+
+      <Card>
+        <DataTable
+          columns={columns}
+          data={clientes}
+          loading={loadingClientes}
+          emptyMessage="No hay clientes registrados"
+        />
+
+        <TablePagination {...paginacion} />
+      </Card>
 
       <ClienteModal
         show={showClienteModal}

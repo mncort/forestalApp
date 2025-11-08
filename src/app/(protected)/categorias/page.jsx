@@ -42,24 +42,29 @@ export default function CategoriasPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
+      <div className="flex flex-1 items-center justify-center py-24">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <p className="font-medium text-destructive">{error}</p>
-            <p className="text-sm mt-1 text-muted-foreground">Verifica que NocoDB esté corriendo en {NOCODB_URL}</p>
+      <div className="flex flex-col gap-4">
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-6">
+          <div className="flex items-center gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="stroke-current h-6 w-6 text-destructive"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-medium text-destructive">{error}</p>
+              <p className="text-sm mt-1 text-muted-foreground">Verifica que NocoDB esté corriendo en {NOCODB_URL}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -67,8 +72,8 @@ export default function CategoriasPage() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="space-y-6">
+    <div className="flex flex-col gap-6 pb-8">
+      <div className="space-y-2">
         <div className="flex justify-between items-center">
           <h2 className="text-3xl font-bold">Categorías y Subcategorías</h2>
           <Button
@@ -82,8 +87,9 @@ export default function CategoriasPage() {
             Nueva Categoría
           </Button>
         </div>
+      </div>
 
-        <div className="grid gap-4">
+      <div className="grid gap-4">
           {categorias.map(cat => {
             const isExpanded = expandedCategories.has(cat.id);
             const subcats = getSubcategoriasByCategoria(cat.id);
@@ -191,7 +197,6 @@ export default function CategoriasPage() {
               </Card>
             );
           })}
-        </div>
       </div>
 
       <CategoryModal

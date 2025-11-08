@@ -209,63 +209,60 @@ export default function PresupuestosPage() {
   ];
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold">Presupuestos</h2>
-            <p className="text-muted-foreground text-sm mt-1">
-              {presupuestos?.length || 0} presupuestos registrados
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              setSelectedPresupuesto(null);
-              setShowPresupuestoModal(true);
-            }}
-            className="gap-2"
-          >
-            <Plus size={20} />
-            Nuevo Presupuesto
-          </Button>
+    <div className="flex flex-col gap-6 pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold">Presupuestos</h2>
+          <p className="text-sm text-muted-foreground">
+            {presupuestos?.length || 0} presupuestos registrados
+          </p>
         </div>
-
-        {/* Filtros */}
-        <PresupuestoFilters
-          filters={filters}
-          searchInput={searchInput}
-          onFilterChange={updateFilter}
-          onClearFilters={clearFilters}
-          hasActiveFilters={hasActiveFilters}
-        />
-
-        <Card>
-          {error ? (
-            <CardContent className="p-8">
-              <div className="flex items-center gap-3 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="font-medium text-destructive">{error}</p>
-                  <p className="text-sm mt-1 text-muted-foreground">Verifica que NocoDB esté corriendo</p>
-                </div>
-              </div>
-            </CardContent>
-          ) : (
-            <>
-              <DataTable
-                columns={columns}
-                data={presupuestos || []}
-                loading={loading}
-                emptyMessage="No hay presupuestos registrados. Crea uno para comenzar."
-              />
-
-              <TablePagination {...paginacion} />
-            </>
-          )}
-        </Card>
+        <Button
+          onClick={() => {
+            setSelectedPresupuesto(null);
+            setShowPresupuestoModal(true);
+          }}
+          className="gap-2"
+        >
+          <Plus size={20} />
+          Nuevo Presupuesto
+        </Button>
       </div>
+
+      <PresupuestoFilters
+        filters={filters}
+        searchInput={searchInput}
+        onFilterChange={updateFilter}
+        onClearFilters={clearFilters}
+        hasActiveFilters={hasActiveFilters}
+      />
+
+      <Card>
+        {error ? (
+          <CardContent className="p-8">
+            <div className="flex items-center gap-3 rounded-xl border border-destructive/50 bg-destructive/10 p-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current text-destructive" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p className="font-medium text-destructive">{error}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Verifica que NocoDB esté corriendo</p>
+              </div>
+            </div>
+          </CardContent>
+        ) : (
+          <>
+            <DataTable
+              columns={columns}
+              data={presupuestos || []}
+              loading={loading}
+              emptyMessage="No hay presupuestos registrados. Crea uno para comenzar."
+            />
+
+            <TablePagination {...paginacion} />
+          </>
+        )}
+      </Card>
 
       <PresupuestoModal
         show={showPresupuestoModal}

@@ -161,86 +161,83 @@ export default function ProductosPage() {
   ];
 
   return (
-    <div className="container mx-auto px-6 py-8">
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-3xl font-bold">Productos</h2>
-              <p className="text-muted-foreground text-sm mt-1">{totalProductos} productos registrados</p>
-            </div>
-            <Button
-              onClick={() => {
-                setSelectedProduct(null);
-                setShowProductModal(true);
-              }}
-              className="gap-2"
-            >
-              <Plus size={20} />
-              Nuevo Producto
-            </Button>
-          </div>
-
-          {/* Filtros */}
-          <ProductoFilters
-            filters={filters}
-            searchInput={searchInput}
-            onFilterChange={updateFilter}
-            onToggleCategoria={toggleCategoria}
-            onToggleSubcategoria={toggleSubcategoria}
-            onClearFilters={clearFilters}
-            hasActiveFilters={hasActiveFilters}
-            categorias={categorias}
-            subcategorias={subcategorias}
-          />
-
-          <Card>
-            {error ? (
-              <CardContent className="p-8">
-                <div className="flex items-center gap-3 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p className="font-medium text-destructive">{error}</p>
-                    <p className="text-sm mt-1 text-muted-foreground">Verifica que NocoDB esté corriendo</p>
-                  </div>
-                </div>
-              </CardContent>
-            ) : (
-              <>
-                <DataTable
-                  columns={columns}
-                  data={productos}
-                  loading={loadingProductos}
-                  emptyMessage="No hay productos registrados"
-                />
-
-                <TablePagination {...paginacion} />
-              </>
-            )}
-          </Card>
+    <div className="flex flex-col gap-6 pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold">Productos</h2>
+          <p className="text-sm text-muted-foreground">{totalProductos} productos registrados</p>
         </div>
-
-        <CostModal
-          show={showCostModal}
-          product={selectedProduct}
-          onClose={() => setShowCostModal(false)}
-          onSaved={reload}
-        />
-        <HistoryModal
-          show={showHistoryModal}
-          product={selectedProduct}
-          costos={costos}
-          onClose={() => setShowHistoryModal(false)}
-        />
-        <ProductModal
-          show={showProductModal}
-          product={selectedProduct}
-          categorias={categorias}
-          subcategorias={subcategorias}
-          onClose={() => setShowProductModal(false)}
-          onSaved={reload}
-        />
+        <Button
+          onClick={() => {
+            setSelectedProduct(null);
+            setShowProductModal(true);
+          }}
+          className="gap-2"
+        >
+          <Plus size={20} />
+          Nuevo Producto
+        </Button>
       </div>
+
+      <ProductoFilters
+        filters={filters}
+        searchInput={searchInput}
+        onFilterChange={updateFilter}
+        onToggleCategoria={toggleCategoria}
+        onToggleSubcategoria={toggleSubcategoria}
+        onClearFilters={clearFilters}
+        hasActiveFilters={hasActiveFilters}
+        categorias={categorias}
+        subcategorias={subcategorias}
+      />
+
+      <Card>
+        {error ? (
+          <CardContent className="p-8">
+            <div className="flex items-center gap-3 rounded-xl border border-destructive/50 bg-destructive/10 p-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current text-destructive" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p className="font-medium text-destructive">{error}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Verifica que NocoDB esté corriendo</p>
+              </div>
+            </div>
+          </CardContent>
+        ) : (
+          <>
+            <DataTable
+              columns={columns}
+              data={productos}
+              loading={loadingProductos}
+              emptyMessage="No hay productos registrados"
+            />
+
+            <TablePagination {...paginacion} />
+          </>
+        )}
+      </Card>
+
+      <CostModal
+        show={showCostModal}
+        product={selectedProduct}
+        onClose={() => setShowCostModal(false)}
+        onSaved={reload}
+      />
+      <HistoryModal
+        show={showHistoryModal}
+        product={selectedProduct}
+        costos={costos}
+        onClose={() => setShowHistoryModal(false)}
+      />
+      <ProductModal
+        show={showProductModal}
+        product={selectedProduct}
+        categorias={categorias}
+        subcategorias={subcategorias}
+        onClose={() => setShowProductModal(false)}
+        onSaved={reload}
+      />
+    </div>
   );
 }
