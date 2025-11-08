@@ -32,40 +32,40 @@ export default function Header() {
   const currentTheme = theme === 'system' ? systemTheme : theme;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-5">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-xl supports-[backdrop-filter]:bg-card/60 px-5 shadow-sm">
       <div className="h-16 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity"
+          className="inline-flex items-center gap-2 hover:opacity-80 transition-all duration-200 group"
         >
-          <span className="text-xl leading-none align-middle">🌲</span>
-          <span className="font-bold text-xl leading-none align-middle">Forestal</span>
+          <span className="text-xl leading-none align-middle group-hover:scale-110 transition-transform duration-200">🌲</span>
+          <span className="font-bold text-xl leading-none align-middle bg-gradient-primary bg-clip-text text-transparent">Forestal</span>
         </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="relative h-10 w-10 rounded-full p-0"
+              className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/20 transition-all duration-200"
             >
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 ring-2 ring-primary/10">
                 <AvatarImage
                   src={session?.user?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(session?.user?.name || 'Usuario')}&backgroundColor=transparent`}
                   alt={session?.user?.name || 'Usuario'}
                 />
-                <AvatarFallback>
+                <AvatarFallback className="bg-gradient-primary text-white font-semibold">
                   {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 z-[100]">
+          <DropdownMenuContent align="end" className="w-56 z-[100] border-border/50">
             <DropdownMenuLabel className="flex flex-col space-y-1">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{session?.user?.name}</span>
                 <span className="text-xs text-muted-foreground">{session?.user?.email}</span>
                 {session?.user?.rol && (
-                  <Badge variant="default" className="mt-2 w-fit text-xs">
+                  <Badge className="mt-2 w-fit text-xs bg-gradient-primary text-white border-0 shadow-md shadow-primary/20">
                     {session?.user?.rol}
                   </Badge>
                 )}

@@ -68,14 +68,14 @@ export default function DashboardResumen() {
 
 function KPICard({ title, value, icon, iconBg, iconColor }) {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground mb-1">{title}</p>
-            <p className="text-2xl font-semibold">{value}</p>
+            <p className="text-sm text-muted-foreground mb-1 font-medium">{title}</p>
+            <p className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">{value}</p>
           </div>
-          <div className={`${iconBg} ${iconColor} p-3 rounded-lg`}>
+          <div className={`${iconBg} ${iconColor} p-4 rounded-2xl shadow-lg backdrop-blur-sm ring-1 ring-white/10`}>
             {icon}
           </div>
         </div>

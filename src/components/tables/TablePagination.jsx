@@ -42,7 +42,7 @@ export default function TablePagination({
   if (totalItems === 0) return null;
 
   return (
-    <div className="p-4 bg-muted/30 border-t">
+    <div className="p-4 bg-muted/30 border-t border-border/50">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         {/* Info y selector de cantidad */}
         <div className="flex items-center gap-4">

@@ -7,7 +7,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDatosGraficos } from '@/services/dashboard';
 
-const COLORS = ['#570DF8', '#F000B8', '#37CDBE', '#FBBD23', '#FF5722'];
+// Horizon UI color palette - vibrant blues and purples
+const COLORS = ['hsl(221, 83%, 53%)', 'hsl(262, 83%, 58%)', 'hsl(173, 58%, 39%)', 'hsl(43, 74%, 66%)', 'hsl(27, 87%, 67%)'];
 
 export default function DashboardGraficos() {
   const [data, setData] = useState(null);
@@ -65,9 +66,9 @@ export default function DashboardGraficos() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Gráfico de líneas - Presupuestos por semana */}
       {data.porSemana && data.porSemana.length > 0 && (
-        <Card>
+        <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-base">Presupuestos por semana</CardTitle>
+            <CardTitle className="text-base font-semibold">Presupuestos por semana</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -90,10 +91,10 @@ export default function DashboardGraficos() {
                 <Line
                   type="monotone"
                   dataKey="cantidad"
-                  stroke="oklch(var(--p))"
+                  stroke="hsl(221, 83%, 53%)"
                   strokeWidth={3}
-                  dot={{ fill: 'oklch(var(--p))', r: 4 }}
-                  activeDot={{ r: 6 }}
+                  dot={{ fill: 'hsl(221, 83%, 53%)', r: 4 }}
+                  activeDot={{ r: 6, fill: 'hsl(262, 83%, 58%)' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -103,9 +104,9 @@ export default function DashboardGraficos() {
 
       {/* Gráfico de pastel - Distribución por categoría */}
       {data.porCategoria && data.porCategoria.length > 0 && (
-        <Card>
+        <Card className="border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-base">Monto vendido por categoría</CardTitle>
+            <CardTitle className="text-base font-semibold">Monto vendido por categoría</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -146,9 +147,9 @@ export default function DashboardGraficos() {
 
       {/* Gráfico de barras - Top 5 clientes */}
       {data.topClientes && data.topClientes.length > 0 && (
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-base">Top 5 clientes por monto</CardTitle>
+            <CardTitle className="text-base font-semibold">Top 5 clientes por monto</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -174,7 +175,7 @@ export default function DashboardGraficos() {
                 />
                 <Bar
                   dataKey="total"
-                  fill="oklch(var(--su))"
+                  fill="hsl(221, 83%, 53%)"
                   radius={[8, 8, 0, 0]}
                 />
               </BarChart>

@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(node -e \"require(''./src/components/modals/clientes/ClienteModal.jsx'')\")",
+      "Bash(node:*)",
+      "Bash(! grep -q 'className.*\\(btn\\|modal\\|form-control\\|divider\\|table-zebra\\|input-bordered\\|select-bordered\\|alert\\)' src/components/modals/presupuestos/*.jsx src/components/modals/presupuestos/components/*.jsx)",
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

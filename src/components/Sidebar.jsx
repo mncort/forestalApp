@@ -18,8 +18,8 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 h-full shrink-0 bg-background border-r border-border overflow-y-auto">
-      <nav className="p-4 w-full space-y-1">
+    <aside className="w-64 h-full shrink-0 bg-card border-r border-border/50 overflow-y-auto">
+      <nav className="p-4 w-full space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -27,14 +27,13 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
+                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all duration-200",
                 isActive(item.href)
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground"
+                  ? "text-foreground font-bold"
+                  : "text-muted-foreground font-medium hover:bg-secondary/80 hover:text-foreground"
               )}
             >
-              <Icon size={20} />
+              <Icon size={20} className={cn(isActive(item.href) && "stroke-[2.5]")} />
               {item.label}
             </Link>
           );
