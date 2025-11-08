@@ -32,8 +32,8 @@ export default function Header() {
   const currentTheme = theme === 'system' ? systemTheme : theme;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-xl supports-[backdrop-filter]:bg-card/60 px-5 shadow-sm">
-      <div className="h-16 flex items-center justify-between">
+    <header className="shrink-0 z-50 w-full border-b border-border/50 bg-card shadow-sm">
+      <div className="h-16 flex items-center justify-between px-5">
         <Link
           href="/"
           className="inline-flex items-center gap-2 hover:opacity-80 transition-all duration-200 group"

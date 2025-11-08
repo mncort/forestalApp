@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react';
-import { Plus, Save, X, Printer, Loader2 } from 'lucide-react';
+import { Plus, Save, X, Printer, Loader2, Download } from 'lucide-react';
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,6 @@ import PresupuestoTotals from './components/PresupuestoTotals';
 import PresupuestoPDF from '@/components/pdf/PresupuestoPDF';
 import { prepararDatosPresupuesto } from '@/lib/pdf/formatters';
 import toast from 'react-hot-toast';
-import { createPortal } from 'react-dom';
 
 /**
  * Modal refactorizado para gestionar items de presupuesto
@@ -209,37 +208,36 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
       />
 
       {/* Modal de PDF */}
-      {showPDFModal && pdfData && typeof window !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-background rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-border">
-              <h3 className="font-bold text-lg">Vista Previa del Presupuesto</h3>
-              <div className="flex gap-2">
-                <PDFDownloadLink
-                  document={<PresupuestoPDF data={pdfData} />}
-                  fileName={`presupuesto-${presupuesto.id}.pdf`}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
-                >
-                  {({ loading }) => (loading ? 'Generando...' : 'Descargar PDF')}
-                </PDFDownloadLink>
-                <Button
-                  onClick={() => setShowPDFModal(false)}
-                  variant="ghost"
-                  size="icon"
-                >
-                  <X size={18} />
-                </Button>
+      <Dialog open={showPDFModal} onOpenChange={(open) => setShowPDFModal(open)}>
+        <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0">
+          <DialogHeader className="px-6 py-4 border-b border-border/50 space-y-0">
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-lg font-semibold">Vista Previa del Presupuesto</DialogTitle>
+              <div className="flex items-center gap-2 mr-8">
+                {pdfData && presupuesto && (
+                  <PDFDownloadLink
+                    document={<PresupuestoPDF data={pdfData} />}
+                    fileName={`presupuesto-${presupuesto.id}.pdf`}
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg h-9 w-9"
+                    title="Descargar PDF"
+                  >
+                    {({ loading }) => (
+                      loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />
+                    )}
+                  </PDFDownloadLink>
+                )}
               </div>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <PDFViewer className="w-full h-full">
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden bg-muted/20">
+            {pdfData && (
+              <PDFViewer className="w-full h-full border-0">
                 <PresupuestoPDF data={pdfData} />
               </PDFViewer>
-            </div>
+            )}
           </div>
-        </div>,
-        document.body
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

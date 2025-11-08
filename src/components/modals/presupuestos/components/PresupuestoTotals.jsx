@@ -68,9 +68,9 @@ export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange 
       </div>
 
       {/* Nota sobre tipo de pago */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs flex gap-2">
-        <Info size={16} className="text-blue-500 flex-shrink-0" />
-        <span>
+      <div className="bg-primary/10 border border-primary/30 rounded-md p-3 text-sm flex gap-2">
+        <Info size={16} className="text-primary flex-shrink-0" />
+        <span className="text-foreground">
           {efectivo
             ? 'Pago en efectivo - Medio IVA (10.5%)'
             : 'Pago con Tarjeta/Transferencia - IVA Completo (21%)'}
