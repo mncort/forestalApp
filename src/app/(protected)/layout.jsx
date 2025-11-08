@@ -33,15 +33,19 @@ export default function ProtectedLayout({ children }) {
 
   return (
     <PageErrorBoundary>
-      <div className="h-screen flex flex-col overflow-hidden">
-        <Header />
-        <div className="flex-1 min-h-0 flex overflow-hidden">
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <div className="flex flex-1 overflow-hidden">
           <Sidebar />
-          <main className="flex-1 bg-base-200 overflow-auto">
-            <PageErrorBoundary>
-              {children}
-            </PageErrorBoundary>
-          </main>
+          <div className="flex flex-1 flex-col">
+            <Header />
+            <main className="flex flex-1 flex-col gap-6 overflow-y-auto p-4 md:gap-8 md:p-6 lg:p-8">
+              <PageErrorBoundary>
+                <div className="theme-container container flex flex-1 scroll-mt-20 flex-col gap-6">
+                  {children}
+                </div>
+              </PageErrorBoundary>
+            </main>
+          </div>
         </div>
       </div>
     </PageErrorBoundary>

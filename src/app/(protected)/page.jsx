@@ -3,9 +3,9 @@ import DashboardGraficos from '@/components/dashboard/DashboardGraficos';
 
 export default function Page() {
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+    <div className="flex flex-col gap-8 pb-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Resumen de la actividad de tu negocio</p>
       </div>
 
