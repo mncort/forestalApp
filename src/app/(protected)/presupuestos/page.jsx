@@ -1,25 +1,54 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, FileText, Eye, Calendar } from 'lucide-react';
-import { getPresupuestos, countPresupuestos, eliminarPresupuesto } from '@/services/index';
+import { getPresupuestos, countPresupuestos, eliminarPresupuesto, getClientes } from '@/services/index';
 import { usePagination } from '@/hooks/usePagination';
+import { usePresupuestosFilters } from '@/hooks/usePresupuestosFilters';
 import { DataTable, TablePagination } from '@/components/tables';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import PresupuestoFilters from '@/components/filters/PresupuestoFilters';
 import PresupuestoModal from '@/components/modals/presupuestos/PresupuestoModal';
 import PresupuestoItemsModal from '@/components/modals/presupuestos/PresupuestoItemsModal';
+import { buildPresupuestosWhereClause } from '@/lib/filters/presupuestosFilters';
 
 export default function PresupuestosPage() {
   const [selectedPresupuesto, setSelectedPresupuesto] = useState(null);
   const [showPresupuestoModal, setShowPresupuestoModal] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
+  const [clientes, setClientes] = useState([]);
 
-  // Usar hook de paginación
-  const paginacion = usePagination(getPresupuestos, countPresupuestos, 10);
+  // Hook de filtros
+  const { filters, searchInput, updateFilter, clearFilters, hasActiveFilters } = usePresupuestosFilters();
+
+  // Construir opciones de filtrado para la API (usar useMemo para evitar recreación)
+  const filterOptions = React.useMemo(() => {
+    const whereClause = buildPresupuestosWhereClause(filters, clientes);
+    return whereClause ? { where: whereClause } : {};
+  }, [filters, clientes]);
+
+  // Usar hook de paginación con filtros
+  const paginacion = usePagination(getPresupuestos, countPresupuestos, 10, [], filterOptions);
   const {
     datos: presupuestos,
     loading,
     error,
     recargar: reload
   } = paginacion;
+
+  // Cargar clientes al montar el componente
+  useEffect(() => {
+    const cargarClientes = async () => {
+      try {
+        const clientesData = await getClientes();
+        setClientes(clientesData);
+      } catch (err) {
+        console.error('Error cargando clientes:', err);
+      }
+    };
+    cargarClientes();
+  }, []);
 
   // Actualizar selectedPresupuesto cuando presupuestos cambie (después de reload)
   React.useEffect(() => {
@@ -80,7 +109,7 @@ export default function PresupuestosPage() {
             {presupuesto.fields.ClienteCompleto?.Nombre || 'Sin cliente'}
           </div>
           {presupuesto.fields.ClienteCompleto?.CUIT && (
-            <div className="text-xs text-base-content/60">
+            <div className="text-xs text-muted-foreground">
               CUIT: {presupuesto.fields.ClienteCompleto.CUIT}
             </div>
           )}
@@ -102,9 +131,9 @@ export default function PresupuestosPage() {
       headerClassName: 'text-center',
       className: 'text-center',
       render: (presupuesto) => (
-        <span className="badge badge-outline badge-sm">
+        <Badge variant="outline">
           {presupuesto.fields.Estado || 'Borrador'}
-        </span>
+        </Badge>
       )
     },
     {
@@ -114,13 +143,13 @@ export default function PresupuestosPage() {
       className: 'text-center',
       render: (presupuesto) =>
         presupuesto.fields.efectivo ? (
-          <span className="badge badge-success badge-sm gap-1">
+          <Badge className="bg-green-600 hover:bg-green-700 gap-1">
             Efectivo (10.5%)
-          </span>
+          </Badge>
         ) : (
-          <span className="badge badge-info badge-sm gap-1">
+          <Badge className="bg-blue-600 hover:bg-blue-700 gap-1">
             Tarjeta (21%)
-          </span>
+          </Badge>
         )
     },
     {
@@ -130,7 +159,7 @@ export default function PresupuestosPage() {
       className: 'text-center',
       render: (presupuesto) => (
         <div className="flex items-center justify-center gap-1 text-sm">
-          <Calendar size={14} className="text-base-content/60" />
+          <Calendar size={14} className="text-muted-foreground" />
           {formatearFecha(presupuesto.fields.CreatedAt)}
         </div>
       )
@@ -141,63 +170,43 @@ export default function PresupuestosPage() {
       headerClassName: 'text-center',
       render: (presupuesto) => (
         <div className="flex items-center justify-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-blue-600 hover:text-blue-700"
             onClick={() => {
               setSelectedPresupuesto(presupuesto);
               setShowItemsModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-info"
-            data-tip="Ver items"
+            title="Ver items"
           >
             <Eye size={18} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => {
               setSelectedPresupuesto(presupuesto);
               setShowPresupuestoModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-            data-tip="Editar"
+            title="Editar"
           >
             <Edit2 size={18} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive/90"
             onClick={() => handleEliminar(presupuesto)}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-error"
-            data-tip="Eliminar"
+            title="Eliminar"
           >
             <Trash2 size={18} />
-          </button>
+          </Button>
         </div>
       )
     }
   ];
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex items-center justify-center py-20">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="alert alert-error">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <p className="font-medium">{error}</p>
-            <p className="text-sm mt-1">Verifica que NocoDB esté corriendo</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -205,32 +214,57 @@ export default function PresupuestosPage() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-3xl font-bold">Presupuestos</h2>
-            <p className="text-base-content/70 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               {presupuestos?.length || 0} presupuestos registrados
             </p>
           </div>
-          <button
+          <Button
             onClick={() => {
               setSelectedPresupuesto(null);
               setShowPresupuestoModal(true);
             }}
-            className="btn btn-primary gap-2"
+            className="gap-2"
           >
             <Plus size={20} />
             Nuevo Presupuesto
-          </button>
+          </Button>
         </div>
 
-        <div className="card bg-base-100 shadow-xl border border-base-300">
-          <DataTable
-            columns={columns}
-            data={presupuestos || []}
-            loading={false}
-            emptyMessage="No hay presupuestos registrados. Crea uno para comenzar."
-          />
+        {/* Filtros */}
+        <PresupuestoFilters
+          filters={filters}
+          searchInput={searchInput}
+          onFilterChange={updateFilter}
+          onClearFilters={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+        />
 
-          <TablePagination {...paginacion} />
-        </div>
+        <Card>
+          {error ? (
+            <CardContent className="p-8">
+              <div className="flex items-center gap-3 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="font-medium text-destructive">{error}</p>
+                  <p className="text-sm mt-1 text-muted-foreground">Verifica que NocoDB esté corriendo</p>
+                </div>
+              </div>
+            </CardContent>
+          ) : (
+            <>
+              <DataTable
+                columns={columns}
+                data={presupuestos || []}
+                loading={loading}
+                emptyMessage="No hay presupuestos registrados. Crea uno para comenzar."
+              />
+
+              <TablePagination {...paginacion} />
+            </>
+          )}
+        </Card>
       </div>
 
       <PresupuestoModal

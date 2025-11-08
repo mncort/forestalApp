@@ -1,5 +1,8 @@
 'use client'
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
  * Componente de paginación reutilizable para tablas
@@ -36,68 +39,81 @@ export default function TablePagination({
   cambiarItemsPorPagina,
   opcionesItemsPorPagina = [10, 25, 50, 100]
 }) {
-  console.log('totalItems:', totalItems);
   if (totalItems === 0) return null;
 
   return (
-    <div className="p-4 bg-base-200 border-t border-base-300">
+    <div className="p-4 bg-muted/30 border-t">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         {/* Info y selector de cantidad */}
         <div className="flex items-center gap-4">
-          <span className="text-sm text-base-content/70">
+          <span className="text-sm text-muted-foreground">
             Mostrando {inicio + 1} - {Math.min(fin, totalItems)} de {totalItems}
           </span>
           <div className="flex items-center gap-2">
-            <label className="text-sm text-base-content/70">Por página:</label>
-            <select
-              value={itemsPorPagina}
-              onChange={(e) => cambiarItemsPorPagina(parseInt(e.target.value))}
-              className="select select-bordered select-sm"
+            <label className="text-sm text-muted-foreground">Por página:</label>
+            <Select
+              value={itemsPorPagina.toString()}
+              onValueChange={(value) => cambiarItemsPorPagina(parseInt(value))}
             >
-              {opcionesItemsPorPagina.map(opcion => (
-                <option key={opcion} value={opcion}>{opcion}</option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {opcionesItemsPorPagina.map(opcion => (
+                  <SelectItem key={opcion} value={opcion.toString()}>
+                    {opcion}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Botones de navegación */}
-        <div className="join">
-          <button
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={irAPrimeraPagina}
             disabled={!hayPaginaAnterior}
-            className="join-item btn btn-sm"
             aria-label="Primera página"
           >
-            ««
-          </button>
-          <button
+            <ChevronFirst className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={irAPaginaAnterior}
             disabled={!hayPaginaAnterior}
-            className="join-item btn btn-sm"
             aria-label="Página anterior"
           >
-            «
-          </button>
-          <button className="join-item btn btn-sm no-animation">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="px-3 py-1 text-sm font-medium">
             Página {paginaActual} de {totalPaginas}
-          </button>
-          <button
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={irAPaginaSiguiente}
             disabled={!hayPaginaSiguiente}
-            className="join-item btn btn-sm"
             aria-label="Página siguiente"
           >
-            »
-          </button>
-          <button
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
             onClick={irAUltimaPagina}
             disabled={!hayPaginaSiguiente}
-            className="join-item btn btn-sm"
             aria-label="Última página"
           >
-            »»
-          </button>
+            <ChevronLast className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

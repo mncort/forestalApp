@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Folder, Package, FileText, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -17,23 +18,28 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 h-full shrink-0 bg-base-100 border-r border-base-300 overflow-y-auto">
-      <ul className="menu p-4 w-full">
+    <aside className="w-64 h-full shrink-0 bg-background border-r border-border overflow-y-auto">
+      <nav className="p-4 w-full space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={isActive(item.href) ? 'active' : ''}
-              >
-                <Icon size={20} />
-                {item.label}
-              </Link>
-            </li>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "hover:bg-accent hover:text-accent-foreground",
+                isActive(item.href)
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground"
+              )}
+            >
+              <Icon size={20} />
+              {item.label}
+            </Link>
           );
         })}
-      </ul>
+      </nav>
     </aside>
   );
 }

@@ -3,7 +3,13 @@ import React from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
 import { crearCliente, actualizarCliente } from '@/services/index';
 import { validarTextoRequerido, validarCUIT, validarEmail, mensajesError } from '@/lib/utils/validation';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2 } from 'lucide-react';
 
 export default function ClienteModal({ show, cliente, onClose, onSaved }) {
   const {
@@ -61,145 +67,123 @@ export default function ClienteModal({ show, cliente, onClose, onSaved }) {
     }
   });
 
-  if (!show) return null;
-
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-lg">
+    <Dialog open={show} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
             {isEditMode ? 'Editar Cliente' : 'Nuevo Cliente'}
-          </h3>
-          <button
-            onClick={onClose}
-            className="btn btn-ghost btn-sm btn-square"
-            disabled={saving}
-          >
-            <X size={20} />
-          </button>
-        </div>
+          </DialogTitle>
+          <DialogDescription>
+            {isEditMode ? 'Actualiza los datos del cliente' : 'Completa los datos del nuevo cliente'}
+          </DialogDescription>
+        </DialogHeader>
 
-        <p className="text-sm text-base-content/70 mb-4">
-          {isEditMode ? 'Actualiza los datos del cliente' : 'Completa los datos del nuevo cliente'}
-        </p>
-
-        <div className="space-y-4">
+        <div className="space-y-4 py-4">
           {/* Nombre */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Nombre *</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="nombre">Nombre *</Label>
+            <Input
+              id="nombre"
               type="text"
               value={formData.Nombre}
               onChange={(e) => updateField('Nombre', e.target.value)}
-              className="input input-bordered w-full"
               placeholder="Nombre del cliente"
               disabled={saving}
             />
           </div>
 
           {/* CUIT */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">CUIT</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="cuit">CUIT</Label>
+            <Input
+              id="cuit"
               type="text"
               value={formData.CUIT}
               onChange={(e) => updateField('CUIT', e.target.value)}
-              className="input input-bordered w-full"
               placeholder="20-12345678-9"
               disabled={saving}
             />
-            <label className="label">
-              <span className="label-text-alt">Formato: 20-12345678-9</span>
-            </label>
+            <p className="text-sm text-muted-foreground">Formato: 20-12345678-9</p>
           </div>
 
           {/* Condición IVA */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Condición IVA</span>
-            </label>
-            <select
+          <div className="space-y-2">
+            <Label htmlFor="condicion-iva">Condición IVA</Label>
+            <Select
               value={formData.CondicionIVA}
-              onChange={(e) => updateField('CondicionIVA', e.target.value)}
-              className="select select-bordered w-full"
+              onValueChange={(value) => updateField('CondicionIVA', value)}
               disabled={saving}
             >
-              <option value="">Seleccionar</option>
-              <option value="Consumidor Final">Consumidor Final</option>
-              <option value="Responsable Inscripto">Responsable Inscripto</option>
-              <option value="Monotributo">Monotributo</option>
-              <option value="Exento">Exento</option>
-            </select>
+              <SelectTrigger id="condicion-iva">
+                <SelectValue placeholder="Seleccionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Seleccionar</SelectItem>
+                <SelectItem value="Consumidor Final">Consumidor Final</SelectItem>
+                <SelectItem value="Responsable Inscripto">Responsable Inscripto</SelectItem>
+                <SelectItem value="Monotributo">Monotributo</SelectItem>
+                <SelectItem value="Exento">Exento</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Email */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
               type="email"
               value={formData.Email}
               onChange={(e) => updateField('Email', e.target.value)}
-              className="input input-bordered w-full"
               placeholder="cliente@ejemplo.com"
               disabled={saving}
             />
           </div>
 
           {/* Teléfono */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Teléfono</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="telefono">Teléfono</Label>
+            <Input
+              id="telefono"
               type="tel"
               value={formData.Tel}
               onChange={(e) => updateField('Tel', e.target.value)}
-              className="input input-bordered w-full"
               placeholder="+54911234567"
               disabled={saving}
             />
           </div>
 
           {/* Dirección */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Dirección</span>
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="direccion">Dirección</Label>
+            <Textarea
+              id="direccion"
               value={formData.Dirección}
               onChange={(e) => updateField('Dirección', e.target.value)}
-              className="textarea textarea-bordered w-full"
               placeholder="Dirección completa"
-              rows="2"
               disabled={saving}
             />
           </div>
         </div>
 
-        <div className="modal-action">
-          <button
+        <DialogFooter>
+          <Button
+            variant="outline"
             onClick={onClose}
-            className="btn btn-ghost"
             disabled={saving}
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSave}
-            className="btn btn-primary"
             disabled={saving}
           >
-            {saving && <span className="loading loading-spinner loading-sm"></span>}
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {saving ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear')}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,6 +1,8 @@
 'use client'
 import ErrorBoundary from './ErrorBoundary';
 import { FileQuestion } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 /**
  * Error Boundary específico para páginas
@@ -13,44 +15,48 @@ import { FileQuestion } from 'lucide-react';
  */
 export default function PageErrorBoundary({ children, pageName }) {
   const fallback = (error, reset) => (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 p-4">
-      <div className="card max-w-lg w-full bg-base-100 shadow-xl">
-        <div className="card-body items-center text-center">
-          <FileQuestion size={64} className="text-error mb-4" />
-
-          <h2 className="card-title text-2xl mb-2">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="max-w-lg w-full border-destructive/50 bg-destructive/10">
+        <CardHeader className="text-center">
+          <FileQuestion size={64} className="text-destructive mx-auto mb-4" />
+          <CardTitle className="text-2xl">
             Error al cargar {pageName || 'la página'}
-          </h2>
+          </CardTitle>
+        </CardHeader>
 
-          <p className="text-base-content/70 mb-6">
+        <CardContent className="space-y-6">
+          <p className="text-muted-foreground text-center">
             No pudimos cargar el contenido. Esto puede deberse a un problema temporal.
           </p>
 
           {process.env.NODE_ENV === 'development' && error && (
-            <div className="alert alert-error text-left w-full mb-4">
-              <div className="flex flex-col gap-1 text-xs">
-                <span className="font-bold">Error:</span>
-                <code className="whitespace-pre-wrap break-all">{error.toString()}</code>
+            <div className="bg-destructive/10 border border-destructive/50 rounded-md p-4 text-left">
+              <div className="flex flex-col gap-2">
+                <span className="font-bold text-sm text-destructive">Error:</span>
+                <code className="text-xs text-muted-foreground whitespace-pre-wrap break-all font-mono">
+                  {error.toString()}
+                </code>
               </div>
             </div>
           )}
 
-          <div className="card-actions flex-col sm:flex-row gap-2 w-full">
-            <button
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <Button
               onClick={() => window.location.href = '/'}
-              className="btn btn-outline flex-1"
+              variant="outline"
+              className="flex-1"
             >
               Volver al inicio
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={reset}
-              className="btn btn-primary flex-1"
+              className="flex-1"
             >
               Reintentar
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 

@@ -4,6 +4,9 @@ import { Plus, Edit2, User } from 'lucide-react';
 import { getClientes, countClientes } from '@/services/index';
 import { usePagination } from '@/hooks/usePagination';
 import { DataTable, TablePagination } from '@/components/tables';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import ClienteModal from '@/components/modals/clientes/ClienteModal';
 
 export default function ClientesPage() {
@@ -26,7 +29,7 @@ export default function ClientesPage() {
       header: 'Nombre',
       render: (cliente) => (
         <div className="flex items-center gap-2">
-          <User size={16} className="text-base-content/60" />
+          <User size={16} className="text-muted-foreground" />
           <span className="font-medium">{cliente.fields?.Nombre || '-'}</span>
         </div>
       )
@@ -43,25 +46,25 @@ export default function ClientesPage() {
       header: 'Condición IVA',
       render: (cliente) =>
         cliente.fields?.CondicionIVA ? (
-          <span className="badge badge-outline badge-sm">
+          <Badge variant="outline">
             {cliente.fields.CondicionIVA}
-          </span>
+          </Badge>
         ) : null
     },
     {
       key: 'Email',
       header: 'Email',
-      className: 'text-sm text-base-content/70'
+      className: 'text-sm text-muted-foreground'
     },
     {
       key: 'Tel',
       header: 'Teléfono',
-      className: 'text-sm text-base-content/70'
+      className: 'text-sm text-muted-foreground'
     },
     {
       key: 'Dirección',
       header: 'Dirección',
-      className: 'text-sm text-base-content/70 max-w-xs truncate'
+      className: 'text-sm text-muted-foreground max-w-xs truncate'
     },
     {
       key: 'acciones',
@@ -69,16 +72,18 @@ export default function ClientesPage() {
       headerClassName: 'text-center',
       render: (cliente) => (
         <div className="flex items-center justify-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => {
               setSelectedCliente(cliente);
               setShowClienteModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-            data-tip="Editar"
+            title="Editar"
           >
             <Edit2 size={18} />
-          </button>
+          </Button>
         </div>
       )
     }
@@ -90,21 +95,21 @@ export default function ClientesPage() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-3xl font-bold">Clientes</h2>
-            <p className="text-base-content/70 text-sm mt-1">{totalClientes} clientes registrados</p>
+            <p className="text-muted-foreground text-sm mt-1">{totalClientes} clientes registrados</p>
           </div>
-          <button
+          <Button
             onClick={() => {
               setSelectedCliente(null);
               setShowClienteModal(true);
             }}
-            className="btn btn-primary gap-2"
+            className="gap-2"
           >
             <Plus size={20} />
             Nuevo Cliente
-          </button>
+          </Button>
         </div>
 
-        <div className="card bg-base-100 shadow-xl border border-base-300">
+        <Card>
           <DataTable
             columns={columns}
             data={clientes}
@@ -113,7 +118,7 @@ export default function ClientesPage() {
           />
 
           <TablePagination {...paginacion} />
-        </div>
+        </Card>
       </div>
 
       <ClienteModal

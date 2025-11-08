@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell, Legend
 } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDatosGraficos } from '@/services/dashboard';
 
 const COLORS = ['#570DF8', '#F000B8', '#37CDBE', '#FBBD23', '#FF5722'];
@@ -32,12 +33,12 @@ export default function DashboardGraficos() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[1, 2, 3].map(i => (
-          <div key={i} className="card bg-base-100 shadow-md animate-pulse">
-            <div className="card-body">
-              <div className="h-4 bg-base-300 rounded w-1/2 mb-4"></div>
-              <div className="h-64 bg-base-300 rounded"></div>
-            </div>
-          </div>
+          <Card key={i} className="animate-pulse">
+            <CardContent className="pt-6">
+              <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
+              <div className="h-64 bg-muted rounded"></div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
@@ -51,12 +52,12 @@ export default function DashboardGraficos() {
 
   if (sinDatos) {
     return (
-      <div className="card bg-base-100 shadow-md">
-        <div className="card-body text-center py-12">
-          <p className="text-base-content/60">No hay datos suficientes para mostrar gráficos</p>
-          <p className="text-sm text-base-content/40">Crea algunos presupuestos para ver las estadísticas</p>
-        </div>
-      </div>
+      <Card>
+        <CardContent className="pt-6 text-center py-12">
+          <p className="text-muted-foreground">No hay datos suficientes para mostrar gráficos</p>
+          <p className="text-sm text-muted-foreground/70 mt-2">Crea algunos presupuestos para ver las estadísticas</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -64,9 +65,11 @@ export default function DashboardGraficos() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Gráfico de líneas - Presupuestos por semana */}
       {data.porSemana && data.porSemana.length > 0 && (
-        <div className="card bg-base-100 shadow-md border border-base-300">
-          <div className="card-body">
-            <h3 className="card-title text-base mb-4">Presupuestos por semana</h3>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Presupuestos por semana</CardTitle>
+          </CardHeader>
+          <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={data.porSemana}>
                 <XAxis
@@ -79,8 +82,8 @@ export default function DashboardGraficos() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'oklch(var(--b1))',
-                    border: '1px solid oklch(var(--bc) / 0.2)',
+                    backgroundColor: 'oklch(var(--background))',
+                    border: '1px solid oklch(var(--border))',
                     borderRadius: '0.5rem'
                   }}
                 />
@@ -94,15 +97,17 @@ export default function DashboardGraficos() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Gráfico de pastel - Distribución por categoría */}
       {data.porCategoria && data.porCategoria.length > 0 && (
-        <div className="card bg-base-100 shadow-md border border-base-300">
-          <div className="card-body">
-            <h3 className="card-title text-base mb-4">Monto vendido por categoría</h3>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Monto vendido por categoría</CardTitle>
+          </CardHeader>
+          <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -122,8 +127,8 @@ export default function DashboardGraficos() {
                 <Tooltip
                   formatter={(value) => [`$${value.toFixed(2)}`, 'Monto']}
                   contentStyle={{
-                    backgroundColor: 'oklch(var(--b1))',
-                    border: '1px solid oklch(var(--bc) / 0.2)',
+                    backgroundColor: 'oklch(var(--background))',
+                    border: '1px solid oklch(var(--border))',
                     borderRadius: '0.5rem'
                   }}
                 />
@@ -135,15 +140,17 @@ export default function DashboardGraficos() {
                 />
               </PieChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Gráfico de barras - Top 5 clientes */}
       {data.topClientes && data.topClientes.length > 0 && (
-        <div className="card bg-base-100 shadow-md border border-base-300 md:col-span-2">
-          <div className="card-body">
-            <h3 className="card-title text-base mb-4">Top 5 clientes por monto</h3>
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base">Top 5 clientes por monto</CardTitle>
+          </CardHeader>
+          <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={data.topClientes}>
                 <XAxis
@@ -160,8 +167,8 @@ export default function DashboardGraficos() {
                 <Tooltip
                   formatter={(value) => [`$${value.toFixed(2)}`, 'Total']}
                   contentStyle={{
-                    backgroundColor: 'oklch(var(--b1))',
-                    border: '1px solid oklch(var(--bc) / 0.2)',
+                    backgroundColor: 'oklch(var(--background))',
+                    border: '1px solid oklch(var(--border))',
                     borderRadius: '0.5rem'
                   }}
                 />
@@ -172,8 +179,8 @@ export default function DashboardGraficos() {
                 />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

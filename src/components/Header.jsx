@@ -2,67 +2,97 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Header() {
   const { data: session } = useSession();
+  const { theme, setTheme, systemTheme } = useTheme();
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
   };
 
+  const toggleTheme = () => {
+    const currentTheme = theme === 'system' ? systemTheme : theme;
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+  };
+
+  const currentTheme = theme === 'system' ? systemTheme : theme;
+
   return (
-    <div className="navbar h-16 bg-base-100 border-b border-base-300 px-5 sticky top-0 z-50">
-      <div className="flex-1">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-5">
+      <div className="h-16 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 h-10"
+          className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity"
         >
           <span className="text-xl leading-none align-middle">🌲</span>
           <span className="font-bold text-xl leading-none align-middle">Forestal</span>
         </Link>
-      </div>
-      <div className="flex gap-2">
-        <div className="dropdown dropdown-end z-[1000]">
-          <div tabIndex={0} role="button" className="btn btn-primary btn-circle avatar">
-            <div className="w-10 rounded-full">
-              {session?.user?.image ? (
-                <img
-                  src={session?.user?.image}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="relative h-10 w-10 rounded-full p-0"
+            >
+              <Avatar className="h-10 w-10">
+                <AvatarImage
+                  src={session?.user?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(session?.user?.name || 'Usuario')}&backgroundColor=transparent`}
                   alt={session?.user?.name || 'Usuario'}
-                  className="w-full h-full object-cover"
                 />
-              ) : (
-                <img
-                  src={`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(session?.user?.name || 'Usuario')}&backgroundColor=transparent`}
-                  alt="avatar"
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-          </div>
-          <ul
-            tabIndex={0}
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1000] mt-3 w-52 p-2 shadow-lg border border-base-300">
-            <li className="menu-title px-4 py-2">
+                <AvatarFallback>
+                  {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 z-[100]">
+            <DropdownMenuLabel className="flex flex-col space-y-1">
               <div className="flex flex-col">
-                <span className="font-semibold text-base-content">{session?.user?.name}</span>
-                <span className="text-xs text-base-content/60">{session?.user?.email}</span>
+                <span className="text-sm font-medium">{session?.user?.name}</span>
+                <span className="text-xs text-muted-foreground">{session?.user?.email}</span>
                 {session?.user?.rol && (
-                  <span className="badge badge-sm badge-primary mt-1">{session?.user?.rol}</span>
+                  <Badge variant="default" className="mt-2 w-fit text-xs">
+                    {session?.user?.rol}
+                  </Badge>
                 )}
               </div>
-            </li>
-            <div className="divider my-1"></div>
-            <li>
-              <button onClick={handleLogout} className="text-error">
-                <LogOut size={16} />
-                Cerrar Sesión
-              </button>
-            </li>
-          </ul>
-        </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={toggleTheme}>
+              {currentTheme === 'dark' ? (
+                <>
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Tema Claro</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Tema Oscuro</span>
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar Sesión</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </div>
+    </header>
   );
 }

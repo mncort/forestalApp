@@ -4,10 +4,11 @@ import { TABLES } from '@/models/nocodbConfig';
 
 /**
  * Cuenta el número total de presupuestos
+ * @param {Object} options - Opciones de filtrado (where)
  * @returns {Promise<number>} Número total de presupuestos
  */
-export const countPresupuestos = async () => {
-  return countRecords(TABLES.presupuestos);
+export const countPresupuestos = async (options = {}) => {
+  return countRecords(TABLES.presupuestos, options);
 };
 
 /**

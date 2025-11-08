@@ -1,5 +1,16 @@
 'use client'
-import { Trash2, Package } from 'lucide-react';
+import { Trash2, Package, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { formatCurrency } from '@/lib/utils/formatting';
 
 /**
@@ -15,7 +26,7 @@ export default function PresupuestoItemsTable({
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
@@ -23,9 +34,9 @@ export default function PresupuestoItemsTable({
   if (items.length === 0) {
     return (
       <div className="text-center py-12">
-        <Package size={48} className="mx-auto text-base-content/30 mb-3" />
-        <p className="text-base-content/50">No hay productos agregados</p>
-        <p className="text-sm text-base-content/40">
+        <Package size={48} className="mx-auto text-muted-foreground mb-3" />
+        <p className="text-muted-foreground">No hay productos agregados</p>
+        <p className="text-sm text-muted-foreground/70">
           Agrega productos para comenzar
         </p>
       </div>
@@ -34,74 +45,76 @@ export default function PresupuestoItemsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="table table-zebra">
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>Producto</th>
-            <th className="text-center">Cantidad</th>
-            <th className="text-right">Precio Unit.</th>
-            <th className="text-right">Subtotal</th>
-            <th className="text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>SKU</TableHead>
+            <TableHead>Producto</TableHead>
+            <TableHead className="text-center">Cantidad</TableHead>
+            <TableHead className="text-right">Precio Unit.</TableHead>
+            <TableHead className="text-right">Subtotal</TableHead>
+            <TableHead className="text-center">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {itemsConPrecios.map((item) => {
             const producto = item.fields.nc_1g29__Productos_id;
             const subtotal = item.precioUnitario * item.cantidad;
 
             return (
-              <tr key={item.id}>
-                <td>
-                  <span className="badge badge-outline font-mono text-xs">
+              <TableRow key={item.id}>
+                <TableCell>
+                  <Badge variant="outline" className="font-mono text-xs">
                     {producto.SKU}
-                  </span>
-                </td>
-                <td>
+                  </Badge>
+                </TableCell>
+                <TableCell>
                   <div>
                     <div className="font-medium">{producto.Nombre}</div>
                     {producto.Descripcion && (
-                      <div className="text-xs text-base-content/60 mt-0.5">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         {producto.Descripcion}
                       </div>
                     )}
                   </div>
-                </td>
-                <td>
+                </TableCell>
+                <TableCell>
                   <div className="flex justify-center">
-                    <input
+                    <Input
                       type="number"
                       min="1"
-                      className="input input-sm input-bordered w-20 text-center"
+                      className="w-20 text-center h-9"
                       value={item.cantidad}
                       onChange={(e) =>
                         onCantidadChange(item.id, parseInt(e.target.value) || 1)
                       }
                     />
                   </div>
-                </td>
-                <td className="text-right font-medium">
+                </TableCell>
+                <TableCell className="text-right font-medium">
                   {formatCurrency(item.precioUnitario)} {item.moneda}
-                </td>
-                <td className="text-right font-semibold">
+                </TableCell>
+                <TableCell className="text-right font-semibold">
                   {formatCurrency(subtotal)} {item.moneda}
-                </td>
-                <td>
+                </TableCell>
+                <TableCell>
                   <div className="flex justify-center">
-                    <button
+                    <Button
                       onClick={() => onEliminarItem(item.id)}
-                      className="btn btn-ghost btn-sm btn-circle text-error"
+                      variant="ghost"
+                      size="icon"
                       title="Eliminar item"
+                      className="h-9 w-9 text-destructive hover:text-destructive"
                     >
                       <Trash2 size={16} />
-                    </button>
+                    </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

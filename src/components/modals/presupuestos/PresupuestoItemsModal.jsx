@@ -1,7 +1,16 @@
 'use client'
 import { useState } from 'react';
-import { Plus, Save, X, Printer } from 'lucide-react';
+import { Plus, Save, X, Printer, Loader2 } from 'lucide-react';
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { useCatalog } from '@/context/CatalogContext';
 import { usePresupuestoItems } from './hooks/usePresupuestoItems';
 import { usePresupuestoCalculations } from './hooks/usePresupuestoCalculations';
@@ -88,31 +97,23 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
     onClose();
   };
 
-  if (!show) return null;
-
   return (
     <>
       {/* Modal principal */}
-      <div className="modal modal-open">
-        <div className="modal-box max-w-6xl h-[90vh] flex flex-col p-0">
+      <Dialog open={show} onOpenChange={handleClose}>
+        <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col">
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b border-base-300">
+          <DialogHeader className="border-b border-border p-6">
             <div>
-              <h3 className="font-bold text-xl">
+              <DialogTitle className="text-xl">
                 Items del Presupuesto
-              </h3>
-              <p className="text-sm text-base-content/60 mt-1">
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1">
                 Cliente: {presupuesto?.fields?.ClienteCompleto?.Nombre || 'Sin cliente'}
                 {presupuesto?.fields?.Descripcion && ` - ${presupuesto.fields.Descripcion}`}
               </p>
             </div>
-            <button
-              onClick={handleClose}
-              className="btn btn-ghost btn-sm btn-circle"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          </DialogHeader>
 
           {/* Content */}
           <div className="flex-1 overflow-auto p-6">
@@ -121,25 +122,24 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
               <div className="lg:col-span-2 space-y-4">
                 <div className="flex justify-between items-center">
                   <h4 className="font-semibold text-lg">Productos</h4>
-                  <button
+                  <Button
                     onClick={() => setShowAddProductModal(true)}
-                    className="btn btn-primary btn-sm gap-2"
+                    size="sm"
+                    className="gap-2"
                   >
                     <Plus size={16} />
                     Agregar Producto
-                  </button>
+                  </Button>
                 </div>
 
-                <div className="card bg-base-100 border border-base-300">
-                  <div className="card-body p-0">
-                    <PresupuestoItemsTable
-                      items={items}
-                      itemsConPrecios={itemsConPrecios}
-                      onCantidadChange={actualizarCantidad}
-                      onEliminarItem={handleEliminarItem}
-                      loading={loadingItems}
-                    />
-                  </div>
+                <div className="border border-border rounded-lg">
+                  <PresupuestoItemsTable
+                    items={items}
+                    itemsConPrecios={itemsConPrecios}
+                    onCantidadChange={actualizarCantidad}
+                    onEliminarItem={handleEliminarItem}
+                    loading={loadingItems}
+                  />
                 </div>
               </div>
 
@@ -156,49 +156,50 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
           </div>
 
           {/* Footer con acciones */}
-          <div className="border-t border-base-300 p-6 bg-base-200">
+          <div className="border-t border-border p-6 bg-muted">
             <div className="flex justify-between items-center">
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={handleGenerarPDF}
-                  className="btn btn-outline gap-2"
+                  variant="outline"
                   disabled={items.length === 0}
+                  className="gap-2"
                 >
                   <Printer size={18} />
                   Ver PDF
-                </button>
+                </Button>
               </div>
 
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={handleClose}
-                  className="btn btn-ghost"
+                  variant="ghost"
                 >
                   {hasUnsavedChanges ? 'Cancelar' : 'Cerrar'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={guardarCambios}
-                  className="btn btn-primary gap-2"
                   disabled={!hasUnsavedChanges || saving}
+                  className="gap-2"
                 >
                   {saving ? (
-                    <span className="loading loading-spinner loading-sm"></span>
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save size={18} />
                   )}
                   Guardar Cambios
-                </button>
+                </Button>
               </div>
             </div>
 
             {hasUnsavedChanges && (
-              <div className="alert alert-warning mt-4">
-                <span className="text-sm">Hay cambios sin guardar</span>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-4 text-sm">
+                <span>Hay cambios sin guardar</span>
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de agregar producto */}
       <ProductSearchModal
@@ -210,23 +211,24 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
       {/* Modal de PDF */}
       {showPDFModal && pdfData && typeof window !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-base-300">
+          <div className="bg-background rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-border">
               <h3 className="font-bold text-lg">Vista Previa del Presupuesto</h3>
               <div className="flex gap-2">
                 <PDFDownloadLink
                   document={<PresupuestoPDF data={pdfData} />}
                   fileName={`presupuesto-${presupuesto.id}.pdf`}
-                  className="btn btn-primary btn-sm"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
                 >
                   {({ loading }) => (loading ? 'Generando...' : 'Descargar PDF')}
                 </PDFDownloadLink>
-                <button
+                <Button
                   onClick={() => setShowPDFModal(false)}
-                  className="btn btn-ghost btn-sm btn-circle"
+                  variant="ghost"
+                  size="icon"
                 >
                   <X size={18} />
-                </button>
+                </Button>
               </div>
             </div>
             <div className="flex-1 overflow-hidden">

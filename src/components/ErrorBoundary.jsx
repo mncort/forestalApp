@@ -1,6 +1,8 @@
 'use client'
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 /**
  * Error Boundary genérico para capturar errores en componentes
@@ -64,49 +66,52 @@ class ErrorBoundary extends React.Component {
 
       // UI de error por defecto
       return (
-        <div className="min-h-screen flex items-center justify-center bg-base-200 p-4">
-          <div className="card max-w-2xl w-full bg-base-100 shadow-xl">
-            <div className="card-body">
-              <div className="flex items-center gap-3 text-error mb-4">
-                <AlertTriangle size={32} />
-                <h2 className="card-title text-2xl">Algo salió mal</h2>
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+          <Card className="max-w-2xl w-full border-destructive/50 bg-destructive/10">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <AlertTriangle size={32} className="text-destructive" />
+                <CardTitle className="text-2xl">Algo salió mal</CardTitle>
               </div>
+            </CardHeader>
 
-              <p className="text-base-content/70 mb-4">
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
                 {this.props.message || 'Ha ocurrido un error inesperado. Por favor, intenta nuevamente.'}
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="mockup-code text-xs mb-4 max-h-60 overflow-auto">
-                  <pre data-prefix=">" className="text-error">
-                    <code>{this.state.error.toString()}</code>
-                  </pre>
+                <div className="bg-muted p-4 rounded-md border border-muted overflow-auto max-h-60">
+                  <p className="text-xs text-destructive font-mono mb-2">
+                    {this.state.error.toString()}
+                  </p>
                   {this.state.errorInfo && (
-                    <pre data-prefix="" className="text-warning text-xs">
-                      <code>{this.state.errorInfo.componentStack}</code>
-                    </pre>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {this.state.errorInfo.componentStack}
+                    </p>
                   )}
                 </div>
               )}
 
-              <div className="card-actions justify-end gap-2">
-                <button
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
                   onClick={this.handleGoHome}
-                  className="btn btn-outline gap-2"
+                  variant="outline"
+                  className="gap-2"
                 >
                   <Home size={18} />
                   Ir al inicio
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={this.handleReset}
-                  className="btn btn-primary gap-2"
+                  className="gap-2"
                 >
                   <RefreshCw size={18} />
                   Intentar nuevamente
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }

@@ -3,6 +3,7 @@ import "./globals.css";
 import ToastProvider from "@/components/ToastProvider";
 import { CatalogProvider } from "@/context/CatalogContext";
 import SessionProvider from "@/components/SessionProvider";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,16 +22,23 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" data-theme="light">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`size-full ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>
-          <CatalogProvider>
-            <ToastProvider />
-            {children}
-          </CatalogProvider>
-        </SessionProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionProvider>
+            <CatalogProvider>
+              <ToastProvider />
+              {children}
+            </CatalogProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

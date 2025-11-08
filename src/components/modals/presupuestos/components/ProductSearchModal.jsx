@@ -1,10 +1,20 @@
 'use client'
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Package, X } from 'lucide-react';
+import { Plus, Package, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { useProductSearch } from '../hooks/useProductSearch';
 import { useCatalog } from '@/context/CatalogContext';
 import { calcularPrecioProducto } from '@/lib/calculations/presupuestos';
-import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 
 /**
@@ -15,9 +25,9 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
   const [selectedProducto, setSelectedProducto] = useState('');
   const [cantidad, setCantidad] = useState(1);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
   const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const { categorias, subcategorias, costos } = useCatalog();
 
   const {
@@ -28,33 +38,35 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
     totalProductos
   } = useProductSearch(show);
 
-  // Calcular posición del dropdown cuando se abre
+  // Cerrar dropdown cuando se cierra el modal
   useEffect(() => {
-    if (showDropdown && inputRef.current && typeof window !== 'undefined') {
-      const rect = inputRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
-        width: rect.width
-      });
+    if (!show) {
+      setShowDropdown(false);
     }
-  }, [showDropdown, searchTerm]);
+  }, [show]);
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
     if (!showDropdown) return;
 
     const handleClickOutside = (e) => {
-      if (inputRef.current && !inputRef.current.contains(e.target)) {
-        const dropdown = document.getElementById('producto-dropdown');
-        if (dropdown && !dropdown.contains(e.target)) {
-          setShowDropdown(false);
-        }
-      }
+      // No cerrar si el click es dentro del input o del dropdown
+      if (inputRef.current?.contains(e.target)) return;
+      if (dropdownRef.current?.contains(e.target)) return;
+
+      // Cerrar el dropdown
+      setShowDropdown(false);
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // Pequeño delay para evitar cerrar inmediatamente al abrir
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [showDropdown]);
 
   const handleSelectProducto = (producto) => {
@@ -110,73 +122,62 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
       })()
     : null;
 
-  if (!show) return null;
-
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-3xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-lg flex items-center gap-2">
+    <Dialog open={show} onOpenChange={handleClose}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <Package size={24} />
             Agregar Producto
-          </h3>
-          <button
-            onClick={handleClose}
-            className="btn btn-ghost btn-sm btn-circle"
-          >
-            <X size={18} />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 py-4">
           {/* Input de búsqueda con dropdown */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">
-                Buscar producto
-                {searchTerm && (
-                  <span className="ml-2 text-xs text-base-content/60">
-                    {loadingProductos ? (
-                      <span className="loading loading-spinner loading-xs"></span>
-                    ) : (
-                      `(${totalProductos} encontrados)`
-                    )}
-                  </span>
+          <div className="space-y-2">
+            <Label htmlFor="product-search">
+              Buscar producto
+              <span className="ml-2 text-xs text-muted-foreground">
+                {loadingProductos ? (
+                  <Loader2 className="inline-block h-3 w-3 animate-spin" />
+                ) : (
+                  `(${totalProductos} ${searchTerm ? 'encontrados' : 'disponibles'})`
                 )}
               </span>
-            </label>
+            </Label>
             <div className="relative">
-              <input
+              <Input
                 ref={inputRef}
+                id="product-search"
                 type="text"
                 placeholder="Buscar por nombre o SKU..."
-                className="input input-bordered w-full"
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setShowDropdown(true);
+                  if (productos.length > 0 && !showDropdown) {
+                    setShowDropdown(true);
+                  }
                   setSelectedProducto(''); // Limpiar selección al cambiar búsqueda
                 }}
                 onFocus={() => {
-                  if (searchTerm && productos.length > 0) {
+                  // Mostrar dropdown si hay productos disponibles
+                  if (productos.length > 0) {
                     setShowDropdown(true);
                   }
                 }}
-                autoFocus
+                onClick={() => {
+                  // También mostrar al hacer click
+                  if (productos.length > 0) {
+                    setShowDropdown(true);
+                  }
+                }}
               />
 
-              {/* Dropdown de productos con createPortal */}
-              {showDropdown && productos.length > 0 && typeof window !== 'undefined' && dropdownPosition.width > 0 && createPortal(
+              {/* Dropdown de productos */}
+              {showDropdown && productos.length > 0 && (
                 <div
-                  id="producto-dropdown"
-                  className="bg-base-100 border border-base-300 rounded-lg shadow-xl max-h-60 overflow-auto"
-                  style={{
-                    position: 'fixed',
-                    top: `${dropdownPosition.top}px`,
-                    left: `${dropdownPosition.left}px`,
-                    width: `${dropdownPosition.width}px`,
-                    zIndex: 9999
-                  }}
+                  ref={dropdownRef}
+                  className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-xl max-h-60 overflow-y-auto z-50"
                 >
                   {productos.map(prod => {
                     const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria?.id);
@@ -188,41 +189,38 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
                         key={prod.id}
                         type="button"
                         onClick={() => handleSelectProducto(prod)}
-                        className="w-full text-left px-3 py-2 hover:bg-base-200 flex justify-between items-center text-sm border-b border-base-300 last:border-b-0"
+                        className="w-full text-left px-3 py-2 hover:bg-accent flex justify-between items-center text-sm border-b border-border last:border-b-0 transition-colors"
                       >
                         <div className="flex-1">
                           <div className="font-medium">{prod.fields.SKU} - {prod.fields.Nombre}</div>
                           {prod.fields.Descripcion && (
-                            <div className="text-xs text-base-content/60 mt-0.5">{prod.fields.Descripcion}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{prod.fields.Descripcion}</div>
                           )}
                         </div>
-                        <div className="ml-2 text-right">
+                        <div className="ml-2 text-right shrink-0">
                           {precioCalc.tieneCosto ? (
-                            <span className="text-xs font-semibold text-success">
+                            <span className="text-xs font-semibold text-green-600">
                               ${precioCalc.precioVenta.toFixed(2)} {precioCalc.moneda}
                             </span>
                           ) : (
-                            <span className="badge badge-warning badge-xs">Sin costo</span>
+                            <Badge variant="secondary">Sin costo</Badge>
                           )}
                         </div>
                       </button>
                     );
                   })}
-                </div>,
-                document.body
+                </div>
               )}
             </div>
           </div>
 
           {/* Campo de cantidad */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Cantidad</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="cantidad">Cantidad</Label>
+            <Input
+              id="cantidad"
               type="number"
               min="1"
-              className="input input-bordered w-full"
               value={cantidad}
               onChange={(e) => setCantidad(parseInt(e.target.value) || 1)}
             />
@@ -230,18 +228,18 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
 
           {/* Información del producto seleccionado */}
           {productoSeleccionado && (
-            <div className={`alert ${precioInfo?.tieneCosto ? 'alert-info' : 'alert-warning'}`}>
+            <div className={`border rounded-lg p-4 ${precioInfo?.tieneCosto ? 'border-blue-200 bg-blue-50' : 'border-yellow-200 bg-yellow-50'}`}>
               <div className="flex flex-col gap-1 text-sm w-full">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <span className="font-semibold block">
                       {productoSeleccionado.fields.Nombre}
                     </span>
-                    <span className="text-xs opacity-80">
+                    <span className="text-xs text-muted-foreground">
                       SKU: {productoSeleccionado.fields.SKU}
                     </span>
                     {productoSeleccionado.fields.Descripcion && (
-                      <span className="text-xs opacity-80 block mt-1">
+                      <span className="text-xs text-muted-foreground block mt-1">
                         {productoSeleccionado.fields.Descripcion}
                       </span>
                     )}
@@ -253,7 +251,7 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
                           <div className="font-bold text-lg">
                             ${precioInfo.precioVenta.toFixed(2)} {precioInfo.moneda}
                           </div>
-                          <div className="text-xs opacity-70">
+                          <div className="text-xs text-muted-foreground">
                             Markup: {precioInfo.markup}%
                           </div>
                         </>
@@ -270,23 +268,16 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
           )}
         </div>
 
-        <div className="modal-action">
-          <button
-            onClick={handleClose}
-            className="btn btn-ghost"
-          >
+        <DialogFooter>
+          <Button variant="ghost" onClick={handleClose}>
             Cancelar
-          </button>
-          <button
-            onClick={handleAgregar}
-            className="btn btn-primary gap-2"
-            disabled={!selectedProducto || cantidad <= 0}
-          >
+          </Button>
+          <Button onClick={handleAgregar} disabled={!selectedProducto || cantidad <= 0} className="gap-2">
             <Plus size={18} />
             Agregar
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

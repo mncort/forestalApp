@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Hook personalizado para manejar paginación de datos
  *
  * @param {Function} fetchFunction - Función async que obtiene los datos paginados
- *                                   Debe aceptar { limit, offset } como parámetros
+ *                                   Debe aceptar { limit, offset, ...additionalOptions } como parámetros
  * @param {Function} countFunction - Función async que obtiene el total de registros
+ *                                   Debe aceptar { ...additionalOptions } como parámetros
  * @param {number} initialItemsPerPage - Cantidad inicial de items por página (default: 10)
  * @param {Array} dependencies - Dependencias adicionales que fuerzan recarga (default: [])
+ * @param {Object} additionalOptions - Opciones adicionales para pasar a fetch y count (ej: filtros where)
  *
  * @returns {Object} Estado y funciones de paginación
  */
@@ -15,7 +17,8 @@ export function usePagination(
   fetchFunction,
   countFunction,
   initialItemsPerPage = 10,
-  dependencies = []
+  dependencies = [],
+  additionalOptions = {}
 ) {
   const [paginaActual, setPaginaActual] = useState(1);
   const [itemsPorPagina, setItemsPorPagina] = useState(initialItemsPerPage);
@@ -23,6 +26,21 @@ export function usePagination(
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Usar ref para guardar las opciones previas y detectar cambios reales
+  const prevOptionsRef = useRef();
+
+  // Resetear a página 1 cuando cambien las opciones adicionales (filtros)
+  useEffect(() => {
+    const currentOptions = JSON.stringify(additionalOptions);
+    const prevOptions = prevOptionsRef.current;
+
+    if (prevOptions !== undefined && prevOptions !== currentOptions) {
+      setPaginaActual(1);
+    }
+
+    prevOptionsRef.current = currentOptions;
+  }, [additionalOptions]);
 
   // Función para cargar datos
   const cargarDatos = useCallback(async () => {
@@ -33,8 +51,8 @@ export function usePagination(
       const offset = (paginaActual - 1) * itemsPorPagina;
 
       const [datosResult, countResult] = await Promise.all([
-        fetchFunction({ limit: itemsPorPagina, offset }),
-        countFunction()
+        fetchFunction({ limit: itemsPorPagina, offset, ...additionalOptions }),
+        countFunction(additionalOptions)
       ]);
 
       setDatos(datosResult);
@@ -47,7 +65,7 @@ export function usePagination(
     } finally {
       setLoading(false);
     }
-  }, [fetchFunction, countFunction, paginaActual, itemsPorPagina, ...dependencies]);
+  }, [fetchFunction, countFunction, paginaActual, itemsPorPagina, JSON.stringify(additionalOptions)]);
 
   // Cargar datos cuando cambien las dependencias
   useEffect(() => {

@@ -1,8 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/services/index';
 import toast from 'react-hot-toast';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }) {
   const [selectedClienteId, setSelectedClienteId] = useState('');
@@ -97,138 +102,118 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
     }
   };
 
-  if (!show) return null;
-
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-lg">
+    <Dialog open={show} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
             {presupuesto ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
-          </h3>
-          <button
-            onClick={onClose}
-            className="btn btn-sm btn-ghost btn-square"
-            disabled={saving}
-          >
-            <X size={20} />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Cliente *</span>
-            </label>
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="cliente">Cliente *</Label>
             {loadingClientes ? (
-              <div className="flex items-center gap-2 p-3 bg-base-200 rounded-lg">
-                <span className="loading loading-spinner loading-sm"></span>
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm">Cargando clientes...</span>
               </div>
             ) : (
-              <select
+              <Select
                 value={selectedClienteId}
-                onChange={handleClienteChange}
-                className="select select-bordered"
-                required
+                onValueChange={(value) => setSelectedClienteId(value)}
                 disabled={saving}
               >
-                <option value="">Seleccionar cliente</option>
-                {clientes.map((cliente) => (
-                  <option key={cliente.id} value={cliente.id}>
-                    {cliente.fields.Nombre}
-                    {cliente.fields.CUIT && ` - ${cliente.fields.CUIT}`}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="cliente">
+                  <SelectValue placeholder="Seleccionar cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientes.map((cliente) => (
+                    <SelectItem key={cliente.id} value={cliente.id}>
+                      {cliente.fields.Nombre}
+                      {cliente.fields.CUIT && ` - ${cliente.fields.CUIT}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
             {clientes.length === 0 && !loadingClientes && (
-              <label className="label">
-                <span className="label-text-alt text-warning">
-                  No hay clientes registrados. Crea uno primero en la sección Clientes.
-                </span>
-              </label>
+              <p className="text-sm text-yellow-600">
+                No hay clientes registrados. Crea uno primero en la sección Clientes.
+              </p>
             )}
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Descripción</span>
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="descripcion">Descripción</Label>
+            <Input
+              id="descripcion"
+              type="text"
               value={formData.Descripcion}
               onChange={(e) => setFormData({ ...formData, Descripcion: e.target.value })}
-              className="textarea textarea-bordered"
               disabled={saving}
-              rows={3}
               placeholder="Descripción opcional del presupuesto"
             />
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Estado</span>
-            </label>
-            <select
+          <div className="space-y-2">
+            <Label htmlFor="estado">Estado</Label>
+            <Select
               value={formData.Estado}
-              onChange={(e) => setFormData({ ...formData, Estado: e.target.value })}
-              className="select select-bordered"
+              onValueChange={(value) => setFormData({ ...formData, Estado: value })}
               disabled={saving}
             >
-              <option value="Borrador">Borrador</option>
-              <option value="Enviado">Enviado</option>
-              <option value="Aprobado">Aprobado</option>
-              <option value="Rechazado">Rechazado</option>
-            </select>
+              <SelectTrigger id="estado">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Borrador">Borrador</SelectItem>
+                <SelectItem value="Enviado">Enviado</SelectItem>
+                <SelectItem value="Aprobado">Aprobado</SelectItem>
+                <SelectItem value="Rechazado">Rechazado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Tipo de Pago</span>
-            </label>
-            <select
+          <div className="space-y-2">
+            <Label htmlFor="tipoPago">Tipo de Pago</Label>
+            <Select
               value={formData.efectivo.toString()}
-              onChange={(e) => setFormData({ ...formData, efectivo: e.target.value === 'true' })}
-              className="select select-bordered"
+              onValueChange={(value) => setFormData({ ...formData, efectivo: value === 'true' })}
               disabled={saving}
             >
-              <option value="false">Tarjeta/Transferencia (IVA 21%)</option>
-              <option value="true">Efectivo (IVA 10.5%)</option>
-            </select>
-            <label className="label">
-              <span className="label-text-alt">
-                {formData.efectivo ? 'Medio IVA aplicado (10.5%)' : 'IVA completo aplicado (21%)'}
-              </span>
-            </label>
-          </div>
-
-          <div className="modal-action">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-ghost"
-              disabled={saving}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <span className="loading loading-spinner loading-sm"></span>
-                  Guardando...
-                </>
-              ) : (
-                presupuesto ? 'Actualizar' : 'Crear'
-              )}
-            </button>
+              <SelectTrigger id="tipoPago">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="false">Tarjeta/Transferencia (IVA 21%)</SelectItem>
+                <SelectItem value="true">Efectivo (IVA 10.5%)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              {formData.efectivo ? 'Medio IVA aplicado (10.5%)' : 'IVA completo aplicado (21%)'}
+            </p>
           </div>
         </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose}></div>
-    </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={saving}
+          >
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {saving ? 'Guardando...' : (presupuesto ? 'Actualizar' : 'Crear')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

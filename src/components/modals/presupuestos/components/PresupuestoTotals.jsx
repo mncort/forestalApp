@@ -1,5 +1,13 @@
 'use client'
 import { Info } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatCurrency, formatPercentage } from '@/lib/utils/formatting';
 
 /**
@@ -9,29 +17,28 @@ export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange 
   const { subtotal, moneda, porcentajeImpuesto, impuesto, total } = totales;
 
   return (
-    <div className="bg-base-200 p-4 rounded-lg space-y-4">
+    <div className="bg-muted p-4 rounded-lg space-y-4">
       {/* Selector de tipo de pago */}
-      <div className="form-control">
-        <label className="label">
-          <span className="label-text font-medium">Tipo de Pago</span>
-        </label>
-        <select
-          className="select select-bordered w-full"
-          value={efectivo.toString()}
-          onChange={(e) => onEfectivoChange(e.target.value === 'true')}
-        >
-          <option value="false">Tarjeta/Transferencia (IVA 21%)</option>
-          <option value="true">Efectivo (IVA 10.5%)</option>
-        </select>
+      <div className="space-y-2">
+        <Label htmlFor="payment-type" className="font-medium">Tipo de Pago</Label>
+        <Select value={efectivo.toString()} onValueChange={(value) => onEfectivoChange(value === 'true')}>
+          <SelectTrigger id="payment-type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="false">Tarjeta/Transferencia (IVA 21%)</SelectItem>
+            <SelectItem value="true">Efectivo (IVA 10.5%)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Totales */}
-      <div className="divider my-2"></div>
+      <div className="border-t border-border my-2"></div>
 
       <div className="space-y-2">
         {/* Subtotal */}
         <div className="flex justify-between items-center">
-          <span className="text-base-content/70">Subtotal:</span>
+          <span className="text-muted-foreground">Subtotal:</span>
           <span className="font-medium text-lg">
             {formatCurrency(subtotal)} {moneda}
           </span>
@@ -39,10 +46,10 @@ export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange 
 
         {/* IVA */}
         <div className="flex justify-between items-center">
-          <span className="text-base-content/70 flex items-center gap-1">
+          <span className="text-muted-foreground flex items-center gap-1">
             IVA ({formatPercentage(porcentajeImpuesto, false)}):
-            <div className="tooltip tooltip-right" data-tip={efectivo ? "Medio IVA - Pago en efectivo" : "IVA Completo - Tarjeta/Transferencia"}>
-              <Info size={14} className="text-info" />
+            <div title={efectivo ? "Medio IVA - Pago en efectivo" : "IVA Completo - Tarjeta/Transferencia"}>
+              <Info size={14} className="text-blue-500" />
             </div>
           </span>
           <span className="font-medium">
@@ -51,7 +58,7 @@ export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange 
         </div>
 
         {/* Total */}
-        <div className="divider my-2"></div>
+        <div className="border-t border-border my-2"></div>
         <div className="flex justify-between items-center">
           <span className="text-lg font-bold">TOTAL:</span>
           <span className="text-2xl font-bold text-primary">
@@ -61,8 +68,8 @@ export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange 
       </div>
 
       {/* Nota sobre tipo de pago */}
-      <div className="alert alert-info text-xs">
-        <Info size={16} />
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs flex gap-2">
+        <Info size={16} className="text-blue-500 flex-shrink-0" />
         <span>
           {efectivo
             ? 'Pago en efectivo - Medio IVA (10.5%)'

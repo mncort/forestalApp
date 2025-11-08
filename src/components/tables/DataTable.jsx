@@ -1,5 +1,7 @@
 'use client'
 import React from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2 } from 'lucide-react';
 
 /**
  * Componente genérico de tabla con estados de carga y vacío
@@ -25,63 +27,63 @@ export default function DataTable({
   const colSpan = columns.length;
 
   return (
-    <div className="overflow-x-auto">
-      <table className={`table table-zebra ${className}`}>
-        <thead>
-          <tr>
-            {columns.map((column, index) => (
-              <th
-                key={column.key || index}
-                className={column.headerClassName || ''}
-              >
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            <tr>
-              <td colSpan={colSpan} className="text-center py-8">
-                <span className="loading loading-spinner loading-md text-primary"></span>
-              </td>
-            </tr>
-          ) : data.length === 0 ? (
-            <tr>
-              <td colSpan={colSpan} className="text-center py-8 text-base-content/60">
-                {emptyMessage}
-              </td>
-            </tr>
-          ) : (
-            data.map((item) => {
-              // Si se proporciona renderRow personalizado, usarlo
-              if (renderRow) {
-                return (
-                  <tr key={getRowKey(item)} className="hover">
-                    {renderRow(item)}
-                  </tr>
-                );
-              }
-
-              // Si no, renderizar usando columns
+    <Table className={className}>
+      <TableHeader>
+        <TableRow>
+          {columns.map((column, index) => (
+            <TableHead
+              key={column.key || index}
+              className={column.headerClassName || ''}
+            >
+              {column.header}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {loading ? (
+          <TableRow>
+            <TableCell colSpan={colSpan} className="text-center py-8">
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : data.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={colSpan} className="text-center py-8 text-muted-foreground">
+              {emptyMessage}
+            </TableCell>
+          </TableRow>
+        ) : (
+          data.map((item) => {
+            // Si se proporciona renderRow personalizado, usarlo
+            if (renderRow) {
               return (
-                <tr key={getRowKey(item)} className="hover">
-                  {columns.map((column, index) => (
-                    <td
-                      key={column.key || index}
-                      className={column.className || ''}
-                    >
-                      {column.render
-                        ? column.render(item)
-                        : item.fields?.[column.key] || item[column.key] || '-'}
-                    </td>
-                  ))}
-                </tr>
+                <TableRow key={getRowKey(item)}>
+                  {renderRow(item)}
+                </TableRow>
               );
-            })
-          )}
-        </tbody>
-      </table>
-    </div>
+            }
+
+            // Si no, renderizar usando columns
+            return (
+              <TableRow key={getRowKey(item)}>
+                {columns.map((column, index) => (
+                  <TableCell
+                    key={column.key || index}
+                    className={column.className || ''}
+                  >
+                    {column.render
+                      ? column.render(item)
+                      : item.fields?.[column.key] || item[column.key] || '-'}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })
+        )}
+      </TableBody>
+    </Table>
   );
 }

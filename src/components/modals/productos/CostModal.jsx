@@ -3,6 +3,12 @@ import React from 'react';
 import { useFormModal } from '@/hooks/useFormModal';
 import { guardarCostoParaProducto } from '@/services/index';
 import { validarNumeroPositivo, mensajesError } from '@/lib/utils/validation';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
 
 export default function CostModal({ show, product, onClose, onSaved }) {
   const { formData, updateField, handleSave, saving } = useFormModal({
@@ -49,89 +55,89 @@ export default function CostModal({ show, product, onClose, onSaved }) {
     }
   });
 
-  if (!show || !product) return null;
+  if (!product) return null;
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg">Asignar Costo</h3>
-        <p className="py-2 text-sm text-base-content/70">{product.fields.Nombre}</p>
+    <Dialog open={show} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Asignar Costo</DialogTitle>
+          <DialogDescription>{product.fields.Nombre}</DialogDescription>
+        </DialogHeader>
 
-        <div className="py-4 space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Costo *</span>
-            </label>
-            <label className="input-group">
-              <span>$</span>
-              <input
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="costo">Costo *</Label>
+            <div className="flex">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-sm">
+                $
+              </span>
+              <Input
+                id="costo"
                 type="number"
                 step="0.01"
                 value={formData.costo}
                 onChange={(e) => updateField('costo', e.target.value)}
-                className="input input-bordered w-full"
+                className="rounded-l-none"
                 placeholder="0.00"
               />
-            </label>
+            </div>
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Moneda</span>
-            </label>
-            <select
+          <div className="space-y-2">
+            <Label htmlFor="moneda">Moneda</Label>
+            <Select
               value={formData.moneda}
-              onChange={(e) => updateField('moneda', e.target.value)}
-              className="select select-bordered w-full"
+              onValueChange={(value) => updateField('moneda', value)}
             >
-              <option value="ARS">ARS - Peso Argentino</option>
-              <option value="USD">USD - Dólar</option>
-            </select>
+              <SelectTrigger id="moneda">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
+                <SelectItem value="USD">USD - Dólar</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Desde *</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="fechaDesde">Desde *</Label>
+            <Input
+              id="fechaDesde"
               type="date"
               value={formData.fechaDesde}
               onChange={(e) => updateField('fechaDesde', e.target.value)}
-              className="input input-bordered w-full"
             />
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Hasta (opcional)</span>
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="fechaHasta">Hasta (opcional)</Label>
+            <Input
+              id="fechaHasta"
               type="date"
               value={formData.fechaHasta}
               onChange={(e) => updateField('fechaHasta', e.target.value)}
-              className="input input-bordered w-full"
             />
           </div>
         </div>
 
-        <div className="modal-action">
-          <button
+        <DialogFooter>
+          <Button
+            variant="outline"
             onClick={onClose}
-            className="btn btn-ghost"
             disabled={saving}
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSave}
-            className="btn btn-primary"
             disabled={saving}
           >
-            {saving && <span className="loading loading-spinner loading-sm"></span>}
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {saving ? 'Guardando...' : 'Guardar'}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

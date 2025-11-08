@@ -1,4 +1,4 @@
-import { getCostoActual } from '../api/costos';
+import { getCostoActual } from '../../services/costos';
 
 /**
  * Funciones de cálculo para presupuestos

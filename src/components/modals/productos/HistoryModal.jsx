@@ -3,6 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
 import { getCostoActual, getCostosArchivados } from '@/services/index';
 import { formatDate } from '@/lib/utils/formatting';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function HistoryModal({ show, product, costos, onClose }) {
   const [costosHistoricos, setCostosHistoricos] = useState([]);
@@ -82,23 +93,27 @@ export default function HistoryModal({ show, product, costos, onClose }) {
   );
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-2xl max-h-[80vh]">
-        <h3 className="font-bold text-lg">Histórico de Costos</h3>
-        <p className="text-sm text-base-content/70 mt-1">{product.fields.Nombre} (SKU: {product.fields.SKU})</p>
+    <Dialog open={show} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Histórico de Costos</DialogTitle>
+          <DialogDescription>
+            {product.fields.Nombre} (SKU: {product.fields.SKU})
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="py-4 overflow-y-auto max-h-96">
-          <div className="space-y-3">
+        <div className="flex-1 overflow-y-auto px-2">
+          <div className="space-y-3 pr-4">
             {/* Costos Próximos */}
             {costosProximos.length > 0 && (
               <>
                 {costosProximos.map((item) => (
-                  <div key={item.id} className="card bg-info/10 border border-info/30">
-                    <div className="card-body p-4">
+                  <Card key={item.id} className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-sm font-medium text-info">Próximo</span>
-                          <p className="text-xl font-bold mt-1">
+                          <Badge variant="secondary">Próximo</Badge>
+                          <p className="text-xl font-bold mt-2">
                             ${parseFloat(item.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2 })} {item.fields.Moneda}
                           </p>
                         </div>
@@ -107,8 +122,8 @@ export default function HistoryModal({ show, product, costos, onClose }) {
                           <p>Hasta: {item.fields.FechaHasta ? formatDate(item.fields.FechaHasta) : '∞'}</p>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </>
             )}
@@ -116,12 +131,12 @@ export default function HistoryModal({ show, product, costos, onClose }) {
             {/* Costo Actual */}
             {costoActual && (
               <>
-                <div className="card bg-success/10 border border-success/30">
-                  <div className="card-body p-4">
+                <Card className="bg-green-50 border-green-200">
+                  <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-sm font-medium text-success">Costo Actual</span>
-                        <p className="text-2xl font-bold mt-1">
+                        <Badge>Costo Actual</Badge>
+                        <p className="text-2xl font-bold mt-2">
                           ${parseFloat(costoActual.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2 })} {costoActual.fields.Moneda}
                         </p>
                       </div>
@@ -130,57 +145,59 @@ export default function HistoryModal({ show, product, costos, onClose }) {
                         <p>Hasta: {costoActual.fields.FechaHasta ? formatDate(costoActual.fields.FechaHasta) : '∞'}</p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </>
             )}
 
             {/* Costos Anteriores */}
             {costosAnteriores.length > 0 && (
               <>
-                <div className="divider text-sm font-semibold text-base-content/70">Anteriores</div>
+                <div className="py-2 px-2 font-semibold text-sm text-muted-foreground border-t border-b">
+                  Anteriores
+                </div>
                 {costosAnteriores.map((item) => (
-                  <div key={item.id} className="card bg-base-200 border border-base-300">
-                    <div className="card-body p-4">
+                  <Card key={item.id} className="bg-muted/50">
+                    <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-sm font-medium text-base-content/70">Anterior</span>
-                          <p className="text-xl font-bold mt-1">
+                          <Badge variant="outline">Anterior</Badge>
+                          <p className="text-xl font-bold mt-2">
                             ${parseFloat(item.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2 })} {item.fields.Moneda}
                           </p>
                         </div>
-                        <div className="text-right text-sm text-base-content/70">
+                        <div className="text-right text-sm text-muted-foreground">
                           <p>Desde: {formatDate(item.fields.FechaDesde)}</p>
                           <p>Hasta: {item.fields.FechaHasta ? formatDate(item.fields.FechaHasta) : '∞'}</p>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </>
             )}
 
             {costosProd.length === 0 && (
-              <div className="text-center py-8 text-base-content/50">
+              <div className="text-center py-8 text-muted-foreground">
                 <History size={48} className="mx-auto mb-3 opacity-50" />
                 <p>No hay costos registrados</p>
               </div>
             )}
 
             {costosProd.length > 0 && !costoActual && costosAnteriores.length === 0 && costosProximos.length === 0 && (
-              <div className="text-center py-8 text-base-content/50">
+              <div className="text-center py-8 text-muted-foreground">
                 <p>Solo hay costos vigentes</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="modal-action">
-          <button onClick={onClose} className="btn">
+        <DialogFooter>
+          <Button onClick={onClose} variant="outline">
             Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

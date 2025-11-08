@@ -123,7 +123,7 @@ export function useToast() {
               onClick={() => {
                 toast.dismiss(t.id);
               }}
-              className="btn btn-ghost btn-sm"
+              className="px-3 py-1.5 text-sm font-medium rounded-md hover:bg-accent transition-colors"
             >
               Cancelar
             </button>
@@ -132,7 +132,7 @@ export function useToast() {
                 onConfirm();
                 toast.dismiss(t.id);
               }}
-              className="btn btn-primary btn-sm"
+              className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               Confirmar
             </button>

@@ -5,6 +5,10 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { LogIn, User, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,82 +53,76 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="card w-full max-w-md bg-base-100 shadow-xl">
-        <div className="card-body">
-          <div className="flex flex-col items-center mb-4">
-            <div className="avatar placeholder mb-4">
-              <div className="bg-primary text-primary-content rounded-full w-20">
-                <LogIn size={40} />
-              </div>
-            </div>
-            <h2 className="card-title text-2xl">Gestión Forestal</h2>
-            <p className="text-sm text-base-content/60">Inicia sesión para continuar</p>
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-col items-center">
+          <div className="bg-primary text-primary-foreground rounded-full w-20 h-20 flex items-center justify-center mb-4">
+            <LogIn size={40} />
           </div>
+          <CardTitle className="text-2xl">Gestión Forestal</CardTitle>
+          <CardDescription>Inicia sesión para continuar</CardDescription>
+        </CardHeader>
 
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email o Usuario</span>
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="identifier">Email o Usuario</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User size={20} className="text-base-content/40" />
+                  <User size={20} className="text-muted-foreground" />
                 </div>
-                <input
+                <Input
+                  id="identifier"
                   type="text"
                   name="identifier"
                   value={formData.identifier}
                   onChange={handleChange}
                   placeholder="Ingresa tu email o usuario"
-                  className="input input-bordered w-full pl-10"
+                  className="pl-10"
                   required
                   autoFocus
                 />
               </div>
             </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Contraseña</span>
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock size={20} className="text-base-content/40" />
+                  <Lock size={20} className="text-muted-foreground" />
                 </div>
-                <input
+                <Input
+                  id="password"
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Ingresa tu contraseña"
-                  className="input input-bordered w-full pl-10"
+                  className="pl-10"
                   required
                 />
               </div>
             </div>
 
-            <div className="form-control mt-6">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="loading loading-spinner loading-sm"></span>
-                    Iniciando sesión...
-                  </>
-                ) : (
-                  <>
-                    <LogIn size={20} />
-                    Iniciar Sesión
-                  </>
-                )}
-              </button>
-            </div>
+            <Button
+              type="submit"
+              className="w-full mt-6"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="mr-2 animate-spin">⏳</span>
+                  Iniciando sesión...
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2" size={20} />
+                  Iniciar Sesión
+                </>
+              )}
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

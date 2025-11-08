@@ -1,5 +1,5 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { verificarCredenciales } from './api/usuarios';
+import { verificarCredenciales } from '../services/usuarios';
 
 export const authOptions = {
   providers: [

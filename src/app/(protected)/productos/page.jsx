@@ -4,16 +4,25 @@ import { Plus, Edit2, History, DollarSign, Package } from 'lucide-react';
 import { getCategorias, getSubcategorias, getProductos, countProductos, getCostos, getCostoActual } from '@/services/index';
 import { useNocoDBMultiple } from '@/hooks/useNocoDB';
 import { usePagination } from '@/hooks/usePagination';
+import { useProductosFilters } from '@/hooks/useProductosFilters';
 import { DataTable, TablePagination } from '@/components/tables';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import ProductoFilters from '@/components/filters/ProductoFilters';
 import CostModal from '@/components/modals/productos/CostModal';
 import HistoryModal from '@/components/modals/productos/HistoryModal';
 import ProductModal from '@/components/modals/productos/ProductModal';
+import { buildProductosWhereClause } from '@/lib/filters/productosFilters';
 
 export default function ProductosPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showCostModal, setShowCostModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
+
+  // Hook de filtros
+  const { filters, searchInput, updateFilter, toggleCategoria, toggleSubcategoria, clearFilters, hasActiveFilters } = useProductosFilters();
 
   // Cargar categorías, subcategorías y costos (sin paginación)
   const { data, loading, error, reload: reloadOtros } = useNocoDBMultiple({
@@ -26,8 +35,14 @@ export default function ProductosPage() {
   const subcategorias = data.subcategorias || [];
   const costos = data.costos || [];
 
-  // Usar hook de paginación para productos
-  const paginacion = usePagination(getProductos, countProductos, 10);
+  // Construir opciones de filtrado para la API (usar useMemo para evitar recreación)
+  const filterOptions = React.useMemo(() => {
+    const whereClause = buildProductosWhereClause(filters, subcategorias);
+    return whereClause ? { where: whereClause } : {};
+  }, [filters, subcategorias]);
+
+  // Usar hook de paginación para productos con filtros
+  const paginacion = usePagination(getProductos, countProductos, 10, [], filterOptions);
   const {
     datos: productos,
     loading: loadingProductos,
@@ -47,7 +62,7 @@ export default function ProductosPage() {
       key: 'SKU',
       header: 'SKU',
       render: (prod) => (
-        <span className="font-mono text-sm font-medium badge badge-outline">{prod.fields.SKU}</span>
+        <Badge variant="outline" className="font-mono">{prod.fields.SKU}</Badge>
       )
     },
     {
@@ -55,7 +70,7 @@ export default function ProductosPage() {
       header: 'Producto',
       render: (prod) => (
         <div className="flex items-center gap-2">
-          <Package size={16} className="text-base-content/60" />
+          <Package size={16} className="text-muted-foreground" />
           <span className="font-medium">{prod.fields.Nombre}</span>
         </div>
       )
@@ -63,7 +78,7 @@ export default function ProductosPage() {
     {
       key: 'Categoria',
       header: 'Categoría',
-      className: 'text-sm text-base-content/70',
+      className: 'text-sm text-muted-foreground',
       render: (prod) => {
         const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
         const categoria = subcategoria ? categorias.find(c => c.id === subcategoria.fields.nc_1g29__Categorias_id) : null;
@@ -73,7 +88,7 @@ export default function ProductosPage() {
     {
       key: 'Subcategoria',
       header: 'Subcategoría',
-      className: 'text-sm text-base-content/70',
+      className: 'text-sm text-muted-foreground',
       render: (prod) => {
         const subcategoria = subcategorias.find(s => s.id === prod.fields.Subcategoria.id);
         return subcategoria?.fields.Subcategoria || '-';
@@ -91,10 +106,10 @@ export default function ProductosPage() {
             <span className="font-semibold">
               ${parseFloat(costoActual.fields.Costo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
-            <span className="text-xs text-base-content/60 ml-1">{costoActual.fields.Moneda}</span>
+            <span className="text-xs text-muted-foreground ml-1">{costoActual.fields.Moneda}</span>
           </>
         ) : (
-          <span className="text-sm text-base-content/50">Sin costo</span>
+          <span className="text-sm text-muted-foreground">Sin costo</span>
         );
       }
     },
@@ -104,64 +119,46 @@ export default function ProductosPage() {
       headerClassName: 'text-center',
       render: (prod) => (
         <div className="flex items-center justify-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-green-600 hover:text-green-700"
             onClick={() => {
               setSelectedProduct(prod);
               setShowCostModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-success"
-            data-tip="Asignar costo"
+            title="Asignar costo"
           >
             <DollarSign size={18} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-blue-600 hover:text-blue-700"
             onClick={() => {
               setSelectedProduct(prod);
               setShowHistoryModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top text-info"
-            data-tip="Ver histórico"
+            title="Ver histórico"
           >
             <History size={18} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => {
               setSelectedProduct(prod);
               setShowProductModal(true);
             }}
-            className="btn btn-ghost btn-sm btn-square tooltip tooltip-top"
-            data-tip="Editar"
+            title="Editar"
           >
             <Edit2 size={18} />
-          </button>
+          </Button>
         </div>
       )
     }
   ];
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex items-center justify-center py-20">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="alert alert-error">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <div>
-            <p className="font-medium">{error}</p>
-            <p className="text-sm mt-1">Verifica que NocoDB esté corriendo</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -169,30 +166,59 @@ export default function ProductosPage() {
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-3xl font-bold">Productos</h2>
-              <p className="text-base-content/70 text-sm mt-1">{totalProductos} productos registrados</p>
+              <p className="text-muted-foreground text-sm mt-1">{totalProductos} productos registrados</p>
             </div>
-            <button
+            <Button
               onClick={() => {
                 setSelectedProduct(null);
                 setShowProductModal(true);
               }}
-              className="btn btn-primary gap-2"
+              className="gap-2"
             >
               <Plus size={20} />
               Nuevo Producto
-            </button>
+            </Button>
           </div>
 
-          <div className="card bg-base-100 shadow-xl border border-base-300">
-            <DataTable
-              columns={columns}
-              data={productos}
-              loading={loadingProductos}
-              emptyMessage="No hay productos registrados"
-            />
+          {/* Filtros */}
+          <ProductoFilters
+            filters={filters}
+            searchInput={searchInput}
+            onFilterChange={updateFilter}
+            onToggleCategoria={toggleCategoria}
+            onToggleSubcategoria={toggleSubcategoria}
+            onClearFilters={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+            categorias={categorias}
+            subcategorias={subcategorias}
+          />
 
-            <TablePagination {...paginacion} />
-          </div>
+          <Card>
+            {error ? (
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-medium text-destructive">{error}</p>
+                    <p className="text-sm mt-1 text-muted-foreground">Verifica que NocoDB esté corriendo</p>
+                  </div>
+                </div>
+              </CardContent>
+            ) : (
+              <>
+                <DataTable
+                  columns={columns}
+                  data={productos}
+                  loading={loadingProductos}
+                  emptyMessage="No hay productos registrados"
+                />
+
+                <TablePagination {...paginacion} />
+              </>
+            )}
+          </Card>
         </div>
 
         <CostModal
