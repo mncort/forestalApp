@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format, parseISO } from 'date-fns';
 
 /**
  * Componente de filtros para el listado de presupuestos
@@ -67,11 +69,11 @@ export default function PresupuestoFilters({
               <Calendar className="w-3 h-3" />
               Fecha Desde
             </Label>
-            <Input
-              type="date"
+            <DatePicker
+              date={filters.fechaDesde ? parseISO(filters.fechaDesde) : undefined}
+              onDateChange={(date) => onFilterChange('fechaDesde', date ? format(date, 'yyyy-MM-dd') : '')}
+              placeholder="Desde..."
               className="h-9"
-              value={filters.fechaDesde}
-              onChange={(e) => onFilterChange('fechaDesde', e.target.value)}
             />
           </div>
 
@@ -81,11 +83,11 @@ export default function PresupuestoFilters({
               <Calendar className="w-3 h-3" />
               Fecha Hasta
             </Label>
-            <Input
-              type="date"
+            <DatePicker
+              date={filters.fechaHasta ? parseISO(filters.fechaHasta) : undefined}
+              onDateChange={(date) => onFilterChange('fechaHasta', date ? format(date, 'yyyy-MM-dd') : '')}
+              placeholder="Hasta..."
               className="h-9"
-              value={filters.fechaHasta}
-              onChange={(e) => onFilterChange('fechaHasta', e.target.value)}
             />
           </div>
 

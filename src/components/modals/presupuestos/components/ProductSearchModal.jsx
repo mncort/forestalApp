@@ -185,13 +185,13 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
                     const precioCalc = calcularPrecioProducto(prod, subcategoria, categoria, costos);
 
                     return (
-                      <button
+                      <Button
                         key={prod.id}
-                        type="button"
+                        variant="ghost"
                         onClick={() => handleSelectProducto(prod)}
-                        className="w-full text-left px-3 py-2 hover:bg-accent flex justify-between items-center text-sm border-b border-border last:border-b-0 transition-colors"
+                        className="w-full justify-between h-auto px-3 py-2 text-sm border-b border-border last:border-b-0 rounded-none"
                       >
-                        <div className="flex-1">
+                        <div className="flex-1 text-left">
                           <div className="font-medium">{prod.fields.SKU} - {prod.fields.Nombre}</div>
                           {prod.fields.Descripcion && (
                             <div className="text-xs text-muted-foreground mt-0.5">{prod.fields.Descripcion}</div>
@@ -206,7 +206,7 @@ export default function ProductSearchModal({ show, onClose, onAddProduct }) {
                             <Badge variant="secondary">Sin costo</Badge>
                           )}
                         </div>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>

@@ -50,10 +50,10 @@ export default function Header() {
             >
               <Avatar className="h-10 w-10 ring-2 ring-primary/10">
                 <AvatarImage
-                  src={session?.user?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(session?.user?.name || 'Usuario')}&backgroundColor=transparent`}
+                  src={session?.user?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(session?.user?.name || 'Usuario')}&backgroundColor=09090b`}
                   alt={session?.user?.name || 'Usuario'}
                 />
-                <AvatarFallback className="bg-gradient-primary text-white font-semibold">
+                <AvatarFallback className="!bg-primary !text-primary-foreground font-semibold">
                   {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -65,7 +65,7 @@ export default function Header() {
                 <span className="text-sm font-medium">{session?.user?.name}</span>
                 <span className="text-xs text-muted-foreground">{session?.user?.email}</span>
                 {session?.user?.rol && (
-                  <Badge className="mt-2 w-fit text-xs bg-gradient-primary text-white border-0 shadow-md shadow-primary/20">
+                  <Badge variant="secondary" className="mt-2 w-fit text-xs">
                     {session?.user?.rol}
                   </Badge>
                 )}

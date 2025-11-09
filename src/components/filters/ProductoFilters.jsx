@@ -174,28 +174,32 @@ export default function ProductoFilters({
             {filters.categorias.map(catId => {
               const categoria = categorias.find(c => c.id === catId);
               return categoria ? (
-                <Badge key={catId} variant="default" className="gap-1">
+                <Badge key={catId} variant="default" className="gap-1 pr-1">
                   {categoria.fields.Categoria}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onToggleCategoria(catId)}
-                    className="ml-1 hover:bg-primary-foreground/20 rounded-full"
+                    className="h-4 w-4 p-0 ml-0.5 hover:bg-primary-foreground/20 rounded-full"
                   >
                     ×
-                  </button>
+                  </Button>
                 </Badge>
               ) : null;
             })}
             {filters.subcategorias.map(subId => {
               const subcategoria = subcategorias.find(s => s.id === subId);
               return subcategoria ? (
-                <Badge key={subId} variant="secondary" className="gap-1">
+                <Badge key={subId} variant="secondary" className="gap-1 pr-1">
                   {subcategoria.fields.Subcategoria}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onToggleSubcategoria(subId)}
-                    className="ml-1 hover:bg-secondary-foreground/20 rounded-full"
+                    className="h-4 w-4 p-0 ml-0.5 hover:bg-secondary-foreground/20 rounded-full"
                   >
                     ×
-                  </button>
+                  </Button>
                 </Badge>
               ) : null;
             })}
