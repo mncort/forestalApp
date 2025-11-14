@@ -91,3 +91,12 @@ export {
   getResumenSemanal,
   getDatosGraficos
 } from './dashboard';
+
+// Stock Movimientos
+export {
+  getStockMovimientos,
+  countStockMovimientos,
+  getMovimientosByProducto,
+  crearMovimiento,
+  calcularStockActual
+} from './stockMovimientos';

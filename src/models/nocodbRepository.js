@@ -1,6 +1,13 @@
 import { NOCODB_URL, HEADERS, BASE_ID } from '@/models/nocodbConfig';
 
 /**
+ * Helper para generar timestamp con formato argentino
+ */
+const getTimestamp = () => {
+  return new Date().toLocaleString('es-AR', { hour12: false });
+};
+
+/**
  * Clase de error personalizada para errores de API
  */
 export class ApiError extends Error {
@@ -55,16 +62,21 @@ export const fetchRecords = async (tableId, options = {}) => {
 
     const url = `${NOCODB_URL}/api/v3/data/${BASE_ID}/${tableId}/records?${params}`;
 
+    console.log(`[${getTimestamp()}] [SERVER] GET ${url}`);
+
     const response = await fetch(url, { headers: HEADERS });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error(`[${getTimestamp()}] [SERVER] Error ${response.status}:`, errorData.message || response.statusText);
       throw new ApiError(
         errorData.message || `Error al obtener registros: ${response.statusText}`,
         response.status,
         errorData
       );
     }
+
+    console.log(`[${getTimestamp()}] [SERVER] Success ${response.status}`);
 
     const data = await response.json();
     const records = data.records || data.list || [];
@@ -101,23 +113,43 @@ export const createRecord = async (tableId, data) => {
   try {
     const url = `${NOCODB_URL}/api/v2/tables/${tableId}/records`;
 
+    console.log('=== createRecord ===');
+    console.log('URL:', url);
+    console.log('Data a enviar:', JSON.stringify(data, null, 2));
+
     const response = await fetch(url, {
       method: 'POST',
       headers: HEADERS,
       body: JSON.stringify(data)
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text();
+      console.error('Error response (text):', errorText);
+
+      let errorData = {};
+      try {
+        errorData = JSON.parse(errorText);
+        console.error('Error response (parsed):', JSON.stringify(errorData, null, 2));
+      } catch (e) {
+        console.error('Could not parse error as JSON');
+      }
+
       throw new ApiError(
-        errorData.message || `Error al crear registro: ${response.statusText}`,
+        errorData.message || errorData.msg || `Error al crear registro: ${response.statusText}`,
         response.status,
         errorData
       );
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log('Success! Result:', JSON.stringify(result, null, 2));
+    return result;
   } catch (error) {
+    console.error('Exception in createRecord:', error);
     if (error instanceof ApiError) {
       throw error;
     }

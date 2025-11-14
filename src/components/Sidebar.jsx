@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Folder, Package, FileText, Users } from 'lucide-react';
+import { LayoutDashboard, Folder, Package, FileText, Users, Warehouse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function Sidebar() {
@@ -14,6 +14,7 @@ export default function Sidebar() {
     { href: '/clientes', icon: Users, label: 'Clientes' },
     { href: '/categorias', icon: Folder, label: 'Categorías' },
     { href: '/productos', icon: Package, label: 'Productos' },
+    { href: '/inventario', icon: Warehouse, label: 'Inventario' },
     { href: '/presupuestos', icon: FileText, label: 'Presupuestos' },
   ];
 

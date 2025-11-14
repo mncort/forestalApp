@@ -12,7 +12,8 @@
       "Bash(! grep -q 'className.*\\(btn\\|modal\\|form-control\\|divider\\|table-zebra\\|input-bordered\\|select-bordered\\|alert\\)' src/components/modals/presupuestos/*.jsx src/components/modals/presupuestos/components/*.jsx)",
       "Bash(cat:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
