@@ -13,7 +13,7 @@ import { formatCurrency, formatPercentage } from '@/lib/utils/formatting';
 /**
  * Componente que muestra los totales del presupuesto (subtotal, impuestos, total)
  */
-export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange }) {
+export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange, disabled = false }) {
   const { subtotal, moneda, porcentajeImpuesto, impuesto, total } = totales;
 
   return (
@@ -21,7 +21,11 @@ export default function PresupuestoTotals({ totales, efectivo, onEfectivoChange 
       {/* Selector de tipo de pago */}
       <div className="space-y-2">
         <Label htmlFor="payment-type" className="font-medium">Tipo de Pago</Label>
-        <Select value={efectivo.toString()} onValueChange={(value) => onEfectivoChange(value === 'true')}>
+        <Select
+          value={efectivo.toString()}
+          onValueChange={(value) => onEfectivoChange(value === 'true')}
+          disabled={disabled}
+        >
           <SelectTrigger id="payment-type">
             <SelectValue />
           </SelectTrigger>

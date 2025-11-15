@@ -55,7 +55,8 @@ export {
   getPresupuestoById,
   crearPresupuesto,
   actualizarPresupuesto,
-  eliminarPresupuesto
+  eliminarPresupuesto,
+  validarEditable
 } from './presupuestos';
 
 // Items de Presupuestos

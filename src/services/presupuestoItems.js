@@ -1,5 +1,6 @@
 import { fetchRecords, createRecord, updateRecord, deleteRecord } from '@/models/nocodbRepository';
 import { TABLES } from '@/models/nocodbConfig';
+import { validarEditable } from './presupuestos';
 
 /**
  * API para Items de Presupuesto
@@ -78,28 +79,49 @@ export const getItemsByPresupuesto = async (presupuestoId, options = {}) => {
 
 /**
  * Crea un nuevo item de presupuesto
+ * Solo permite crear si el presupuesto está en estado "borrador"
  * @param {Object} itemData - Datos del item
  * @returns {Promise<Object>} Item creado
  */
 export const crearPresupuestoItem = async (itemData) => {
+  // Validar que el presupuesto sea editable
+  const presupuestoId = itemData.nc_1g29___Presupuestos_id;
+  if (presupuestoId) {
+    await validarEditable(presupuestoId);
+  }
+
   return createRecord(TABLES.presupuestoItems, itemData);
 };
 
 /**
  * Actualiza un item de presupuesto existente
+ * Solo permite actualizar si el presupuesto está en estado "borrador"
  * @param {string} itemId - ID del item
  * @param {Object} itemData - Datos a actualizar
+ * @param {string} presupuestoId - ID del presupuesto (requerido para validación)
  * @returns {Promise<Object>} Item actualizado
  */
-export const actualizarPresupuestoItem = async (itemId, itemData) => {
+export const actualizarPresupuestoItem = async (itemId, itemData, presupuestoId) => {
+  // Validar que el presupuesto sea editable
+  if (presupuestoId) {
+    await validarEditable(presupuestoId);
+  }
+
   return updateRecord(TABLES.presupuestoItems, itemId, itemData);
 };
 
 /**
  * Elimina un item de presupuesto
+ * Solo permite eliminar si el presupuesto está en estado "borrador"
  * @param {string} itemId - ID del item
+ * @param {string} presupuestoId - ID del presupuesto (requerido para validación)
  * @returns {Promise<void>}
  */
-export const eliminarPresupuestoItem = async (itemId) => {
+export const eliminarPresupuestoItem = async (itemId, presupuestoId) => {
+  // Validar que el presupuesto sea editable
+  if (presupuestoId) {
+    await validarEditable(presupuestoId);
+  }
+
   return deleteRecord(TABLES.presupuestoItems, itemId);
 };

@@ -14,9 +14,12 @@ import {
 import { useCatalog } from '@/context/CatalogContext';
 import { usePresupuestoItems } from './hooks/usePresupuestoItems';
 import { usePresupuestoCalculations } from './hooks/usePresupuestoCalculations';
+import { usePresupuestoEstado } from './hooks/usePresupuestoEstado';
 import ProductSearchModal from './components/ProductSearchModal';
 import PresupuestoItemsTable from './components/PresupuestoItemsTable';
 import PresupuestoTotals from './components/PresupuestoTotals';
+import PresupuestoEstadoHeader from './components/PresupuestoEstadoHeader';
+import PDFViewerModal from './components/PDFViewerModal';
 import PresupuestoPDF from '@/components/pdf/PresupuestoPDF';
 import { prepararDatosPresupuesto } from '@/lib/pdf/formatters';
 import toast from 'react-hot-toast';
@@ -33,6 +36,19 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showPDFModal, setShowPDFModal] = useState(false);
   const [pdfData, setPdfData] = useState(null);
+
+  // Hook de estado del presupuesto
+  const {
+    estadoActual,
+    esEditable,
+    cambiandoEstado,
+    generandoPDF,
+    cambiarEstado,
+    verPDF,
+    pdfUrl,
+    showPDFModal: showPDFEstadoModal,
+    cerrarPDFModal
+  } = usePresupuestoEstado(presupuesto, onSaved);
 
   // Hook principal de gestión de items
   const {
@@ -78,9 +94,16 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
         return;
       }
 
-      const datos = prepararDatosPresupuesto(presupuesto, itemsConPrecios, efectivo);
-      setPdfData(datos);
-      setShowPDFModal(true);
+      // Si está en borrador, mostrar preview con react-pdf
+      // Si está en otro estado, usar el hook que abre el PDF guardado
+      if (estadoActual === 'Borrador') {
+        const datos = prepararDatosPresupuesto(presupuesto, itemsConPrecios, efectivo);
+        setPdfData(datos);
+        setShowPDFModal(true);
+      } else {
+        // Usar el hook para abrir el PDF guardado en la BD
+        verPDF();
+      }
     } catch (error) {
       console.error('Error generando PDF:', error);
       toast.error(`Error al generar PDF: ${error.message}`);
@@ -103,14 +126,26 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
         <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col">
           {/* Header */}
           <DialogHeader className="border-b border-border p-6">
-            <div>
-              <DialogTitle className="text-xl">
-                Items del Presupuesto
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Cliente: {presupuesto?.fields?.ClienteCompleto?.Nombre || 'Sin cliente'}
-                {presupuesto?.fields?.Descripcion && ` - ${presupuesto.fields.Descripcion}`}
-              </p>
+            <div className="space-y-4">
+              <div>
+                <DialogTitle className="text-xl">
+                  Presupuesto #{presupuesto?.id ? String(presupuesto.id).substring(0, 8) : 'Nuevo'}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Cliente: {presupuesto?.fields?.ClienteCompleto?.Nombre || 'Sin cliente'}
+                  {presupuesto?.fields?.Descripcion && ` - ${presupuesto.fields.Descripcion}`}
+                </p>
+              </div>
+
+              {/* Header de estado */}
+              <PresupuestoEstadoHeader
+                estadoActual={estadoActual}
+                esEditable={esEditable}
+                cambiandoEstado={cambiandoEstado}
+                generandoPDF={generandoPDF}
+                onCambiarEstado={cambiarEstado}
+                onVerPDF={verPDF}
+              />
             </div>
           </DialogHeader>
 
@@ -125,6 +160,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
                     onClick={() => setShowAddProductModal(true)}
                     size="sm"
                     className="gap-2"
+                    disabled={!esEditable}
                   >
                     <Plus size={16} />
                     Agregar Producto
@@ -138,6 +174,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
                     onCantidadChange={actualizarCantidad}
                     onEliminarItem={handleEliminarItem}
                     loading={loadingItems}
+                    disabled={!esEditable}
                   />
                 </div>
               </div>
@@ -149,6 +186,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
                   totales={totales}
                   efectivo={efectivo}
                   onEfectivoChange={setEfectivo}
+                  disabled={!esEditable}
                 />
               </div>
             </div>
@@ -156,19 +194,7 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
 
           {/* Footer con acciones */}
           <div className="border-t border-border p-6 bg-muted">
-            <div className="flex justify-between items-center">
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleGenerarPDF}
-                  variant="outline"
-                  disabled={items.length === 0}
-                  className="gap-2"
-                >
-                  <Printer size={18} />
-                  Ver PDF
-                </Button>
-              </div>
-
+            <div className="flex justify-end items-center">
               <div className="flex gap-2">
                 <Button
                   onClick={handleClose}
@@ -176,18 +202,20 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
                 >
                   {hasUnsavedChanges ? 'Cancelar' : 'Cerrar'}
                 </Button>
-                <Button
-                  onClick={guardarCambios}
-                  disabled={!hasUnsavedChanges || saving}
-                  className="gap-2"
-                >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save size={18} />
-                  )}
-                  Guardar Cambios
-                </Button>
+                {esEditable && (
+                  <Button
+                    onClick={guardarCambios}
+                    disabled={!hasUnsavedChanges || saving}
+                    className="gap-2"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save size={18} />
+                    )}
+                    Guardar Cambios
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -207,12 +235,12 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
         onAddProduct={handleAgregarProducto}
       />
 
-      {/* Modal de PDF */}
+      {/* Modal de PDF Preview (solo para borrador con react-pdf) */}
       <Dialog open={showPDFModal} onOpenChange={(open) => setShowPDFModal(open)}>
         <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0">
           <DialogHeader className="px-6 py-4 border-b border-border/50 space-y-0">
             <div className="flex justify-between items-center">
-              <DialogTitle className="text-lg font-semibold">Vista Previa del Presupuesto</DialogTitle>
+              <DialogTitle className="text-lg font-semibold">Vista Previa del Presupuesto (Borrador)</DialogTitle>
               <div className="flex items-center gap-2 mr-8">
                 {pdfData && presupuesto && (
                   <PDFDownloadLink
@@ -238,6 +266,14 @@ export default function PresupuestoItemsModal({ show, presupuesto, onClose, onSa
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de PDF guardado (para estados enviado/aprobado/rechazado) */}
+      <PDFViewerModal
+        show={showPDFEstadoModal}
+        pdfUrl={pdfUrl}
+        title={`Presupuesto ${presupuesto?.id || ''} - ${estadoActual}`}
+        onClose={cerrarPDFModal}
+      />
     </>
   );
 }

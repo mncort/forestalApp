@@ -21,7 +21,8 @@ export default function PresupuestoItemsTable({
   itemsConPrecios,
   onCantidadChange,
   onEliminarItem,
-  loading
+  loading,
+  disabled = false
 }) {
   if (loading) {
     return (
@@ -88,6 +89,7 @@ export default function PresupuestoItemsTable({
                       onChange={(e) =>
                         onCantidadChange(item.id, parseInt(e.target.value) || 1)
                       }
+                      disabled={disabled}
                     />
                   </div>
                 </TableCell>
@@ -105,6 +107,7 @@ export default function PresupuestoItemsTable({
                       size="icon"
                       title="Eliminar item"
                       className="h-9 w-9 text-destructive hover:text-destructive"
+                      disabled={disabled}
                     >
                       <Trash2 size={16} />
                     </Button>

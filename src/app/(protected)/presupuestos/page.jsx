@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, FileText, Eye, Calendar } from 'lucide-react';
 import { getPresupuestos, countPresupuestos, eliminarPresupuesto, getClientes } from '@/services/index';
+import { esEditable, ESTADOS_PRESUPUESTO } from '@/lib/stateMachine/presupuestoStates';
 import { usePagination } from '@/hooks/usePagination';
 import { usePresupuestosFilters } from '@/hooks/usePresupuestosFilters';
 import { DataTable, TablePagination } from '@/components/tables';
@@ -168,43 +169,50 @@ export default function PresupuestosPage() {
       key: 'acciones',
       header: 'Acciones',
       headerClassName: 'text-center',
-      render: (presupuesto) => (
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-blue-600 hover:text-blue-700"
-            onClick={() => {
-              setSelectedPresupuesto(presupuesto);
-              setShowItemsModal(true);
-            }}
-            title="Ver items"
-          >
-            <Eye size={18} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => {
-              setSelectedPresupuesto(presupuesto);
-              setShowPresupuestoModal(true);
-            }}
-            title="Editar"
-          >
-            <Edit2 size={18} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive/90"
-            onClick={() => handleEliminar(presupuesto)}
-            title="Eliminar"
-          >
-            <Trash2 size={18} />
-          </Button>
-        </div>
-      )
+      render: (presupuesto) => {
+        const estado = presupuesto.fields.Estado || ESTADOS_PRESUPUESTO.BORRADOR;
+        const editable = esEditable(estado);
+
+        return (
+          <div className="flex items-center justify-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-blue-600 hover:text-blue-700"
+              onClick={() => {
+                setSelectedPresupuesto(presupuesto);
+                setShowItemsModal(true);
+              }}
+              title="Ver items"
+            >
+              <Eye size={18} />
+            </Button>
+            {editable && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  setSelectedPresupuesto(presupuesto);
+                  setShowPresupuestoModal(true);
+                }}
+                title="Editar"
+              >
+                <Edit2 size={18} />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive/90"
+              onClick={() => handleEliminar(presupuesto)}
+              title="Eliminar"
+            >
+              <Trash2 size={18} />
+            </Button>
+          </div>
+        );
+      }
     }
   ];
 

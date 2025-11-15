@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { crearPresupuesto, actualizarPresupuesto, getClientes } from '@/services/index';
+import { esEditable, ESTADOS_PRESUPUESTO } from '@/lib/stateMachine/presupuestoStates';
 import toast from 'react-hot-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,10 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
   const [saving, setSaving] = useState(false);
   const [clientes, setClientes] = useState([]);
   const [loadingClientes, setLoadingClientes] = useState(false);
+
+  // Determinar si es editable basado en el estado usando la función centralizada
+  const estadoActual = presupuesto?.fields?.Estado || ESTADOS_PRESUPUESTO.BORRADOR;
+  const editable = !presupuesto || esEditable(estadoActual);
 
   // Cargar lista de clientes cuando se abre el modal
   useEffect(() => {
@@ -104,7 +109,7 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
 
   return (
     <Dialog open={show} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {presupuesto ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
@@ -123,7 +128,7 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
               <Select
                 value={selectedClienteId}
                 onValueChange={(value) => setSelectedClienteId(value)}
-                disabled={saving}
+                disabled={saving || !editable}
               >
                 <SelectTrigger id="cliente">
                   <SelectValue placeholder="Seleccionar cliente" />
@@ -152,28 +157,9 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
               type="text"
               value={formData.Descripcion}
               onChange={(e) => setFormData({ ...formData, Descripcion: e.target.value })}
-              disabled={saving}
+              disabled={saving || !editable}
               placeholder="Descripción opcional del presupuesto"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="estado">Estado</Label>
-            <Select
-              value={formData.Estado}
-              onValueChange={(value) => setFormData({ ...formData, Estado: value })}
-              disabled={saving}
-            >
-              <SelectTrigger id="estado">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Borrador">Borrador</SelectItem>
-                <SelectItem value="Enviado">Enviado</SelectItem>
-                <SelectItem value="Aprobado">Aprobado</SelectItem>
-                <SelectItem value="Rechazado">Rechazado</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="space-y-2">
@@ -181,7 +167,7 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
             <Select
               value={formData.efectivo.toString()}
               onValueChange={(value) => setFormData({ ...formData, efectivo: value === 'true' })}
-              disabled={saving}
+              disabled={saving || !editable}
             >
               <SelectTrigger id="tipoPago">
                 <SelectValue />
@@ -203,15 +189,17 @@ export default function PresupuestoModal({ show, presupuesto, onClose, onSaved }
             onClick={onClose}
             disabled={saving}
           >
-            Cancelar
+            {editable ? 'Cancelar' : 'Cerrar'}
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={saving}
-          >
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {saving ? 'Guardando...' : (presupuesto ? 'Actualizar' : 'Crear')}
-          </Button>
+          {editable && (
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+            >
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {saving ? 'Guardando...' : (presupuesto ? 'Actualizar' : 'Crear')}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
